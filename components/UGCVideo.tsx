@@ -11,10 +11,10 @@ export default function UGCVideo({ videoUrl }: UGCVideoProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Layer 4 Asset: Classic transparent background meme cutout
-  const memeGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Bnd2NndXZ4YW15d2g1ZXE2Z3B6cHd5ZW15b2t1ZnB4bm92bTA0diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/jWexZylOmfadO/giphy.gif";
+  // Layer 4 Asset: High-Definition Transparent Confused John Travolta Cutout
+  const memeGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzBqZXJ4YmR4c3Z4am15cTZ0M2p5bDJ1b3V5Z215eDFlOHk1biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7qE1YN7aBOFPRw8E/giphy.gif";
   
-  // Layer 1 Asset: Static Background Context 
+  // Layer 1 Asset: Ambient Blurred Background Frame Context
   const backgroundPoster = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop";
 
   const handlePlayToggle = () => {
@@ -31,20 +31,18 @@ export default function UGCVideo({ videoUrl }: UGCVideoProps) {
   };
 
   return (
-    <div className="w-full flex justify-center my-6">
-      {/* CRITICAL FIX: Added 'relative' and 'overflow-hidden' explicitly to this frame.
-        This forces all absolute sub-elements (like the meme) to remain trapped inside the boundaries 
-        of the card layout, preventing leaks when scrolling the parent chat window.
-      */}
+    // style={{ isolation: 'isolate' }} builds a bulletproof wall around this component. 
+    // It prevents any internal z-index layers from bleeding over external elements like your text box.
+    <div className="w-full flex justify-center my-6" style={{ isolation: 'isolate' }}>
       <div 
         onClick={handlePlayToggle}
-        className="relative w-[320px] h-[568px] bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
+        className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
       >
-        {/* LAYER 1: Base Ambient Background */}
+        {/* LAYER 1: Base Ambient Background Image */}
         <img 
           src={backgroundPoster} 
-          alt="UGC Background" 
-          className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity pointer-events-none"
+          alt="UGC Context Background" 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity pointer-events-none"
         />
 
         {/* LAYER 2: Live Continuous Video Feed */}
@@ -54,7 +52,7 @@ export default function UGCVideo({ videoUrl }: UGCVideoProps) {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-[1]"
         />
 
         {/* LAYER 3: Hidden Audio Track */}
@@ -64,27 +62,27 @@ export default function UGCVideo({ videoUrl }: UGCVideoProps) {
           loop
         />
 
-        {/* LAYER 4: The Contained Transparent Meme Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        {/* LAYER 4: True Transparent Human Cutout Meme Overlay */}
+        <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-[2] pb-24">
           <img 
             src={memeGif} 
-            alt="Meme Overlay" 
-            className="w-[200px] h-auto object-contain transform translate-y-12"
+            alt="Human Meme Cutout" 
+            className="w-[180px] h-auto object-contain"
           />
         </div>
 
-        {/* LAYER 5: Dynamic Text Overlay Hook */}
-        <div className="absolute bottom-12 left-0 right-0 px-4 text-center pointer-events-none z-30">
-          <h3 className="text-white text-xl font-black uppercase tracking-wider drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] text-stroke">
+        {/* LAYER 5: Text Overlay Captions */}
+        <div className="absolute bottom-8 left-0 right-0 px-4 text-center pointer-events-none z-[3]">
+          <h3 className="text-white text-lg sm:text-xl font-black uppercase tracking-wider drop-shadow-[0_4px_4px_rgba(0,0,0,0.9)] text-stroke">
             POV: Automating Video Creation 🚀
           </h3>
         </div>
 
-        {/* INTERACTION COMPONENT: Overlay Play Button Indicator */}
+        {/* INTERACTION UI: Custom Glassmorphic Play Screen */}
         {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity group-hover:bg-black/40 z-40">
-            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/40 shadow-lg transform transition group-hover:scale-110">
-              <svg className="w-8 h-8 text-white fill-current translate-x-0.5" viewBox="0 0 24 24">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity group-hover:bg-black/50 z-[4]">
+            <div className="w-14 h-14 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-lg transform transition group-hover:scale-110">
+              <svg className="w-6 h-6 text-white fill-current translate-x-0.5" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
