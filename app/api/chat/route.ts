@@ -12,23 +12,12 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // 1. Strictly filter out any system messages and scrub hidden Next.js metadata
-    const cleanMessages = messages
-      .filter((m: any) => m.role === 'user' || m.role === 'assistant')
-      .map((m: any) => ({
-        role: m.role,
-        content: m.content
-      }));
-
-    // 2. Use the official 'system' property exactly as Vercel AI SDK requires
     const result = await streamText({
-      model: groq('llama-3.1-8b-instant'),
-      system: `You are a helpful AI assistant that generates UGC marketing videos.
-      - If the user says hi, greet them naturally.
-      - If the user asks what you do, say: "I can generate UGC videos! Just send me a product URL."
-      - IF the user provides a product URL (like a website link), you MUST include this exact text somewhere in your response: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-      - Do not output the URL unless a product link is provided.`,
-      messages: cleanMessages,
+      // Switched to Groq's most reliable, universally supported model ID
+      model: groq('llama3-8b-8192'),
+      system: "You are a helpful AI assistant that generates UGC marketing videos. If the user says hi, greet them naturally. If the user asks what you do, say: 'I can generate UGC videos! Just send me a product URL.' IF the user provides a product URL (like a website link), you MUST include this exact text somewhere in your response: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4 Do not output the URL unless a product link is provided.",
+      // Pass the raw Next.js messages array directly so useChat doesn't lose track of the thread
+      messages,
     });
 
     return result.toTextStreamResponse();
