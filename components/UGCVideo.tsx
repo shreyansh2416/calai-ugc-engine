@@ -13,8 +13,8 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   // Layer 3: Trendy Text Overlay
   const hookText = "Me acting like I know my macros so I just open CalAI and let it handle it";
   
-  // Layer 4: Transparent GIF (No background, perfectly cut out)
-  const memeGif = "https://media.giphy.com/media/g01ZnwAUvutuK8GIQn/giphy.gif"; 
+  // Layer 4: 100% Transparent Animated Asset
+  const memeGif = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Exploding%20Head.png";
 
   // Global toggle enables clicking anywhere on the frame to play or pause
   const handleTogglePlay = (e: React.MouseEvent) => {
