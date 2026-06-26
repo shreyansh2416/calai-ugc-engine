@@ -5,11 +5,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const bgRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Gold Standard Open Assets - Zero embed/hotlink restrictions
+  // Layer 1: Background Video
   const bgVideo = "https://www.w3schools.com/html/mov_bbb.mp4"; 
+  // Layer 2: Trending Audio
   const trendingAudio = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3";
-  const hookText = "me acting like I know my macros so I just open calai.app and let it handle it";
-  const memeGif = "https://upload.wikimedia.org/wikipedia/commons/a/a5/Red_Panda_Animate.gif";
+  // Layer 3: Trendy Text Overlay
+  const hookText = "Me acting like I know my macros so I just open CalAI and let it handle it";
+  // Layer 4: GIF on Top (Most Important Part)
+  const memeGif = "https://i.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif"; 
 
   // Global toggle enables clicking anywhere on the frame to play or pause
   const handleTogglePlay = (e: React.MouseEvent) => {
@@ -30,9 +33,9 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   return (
     <div 
       onClick={handleTogglePlay}
-      className="w-[300px] h-[533px] relative overflow-hidden rounded-2xl border border-gray-700 shadow-2xl mt-4 bg-black cursor-pointer select-none group"
+      className="w-[300px] h-[533px] relative overflow-hidden rounded-xl border-2 border-gray-800 shadow-2xl mt-4 bg-black cursor-pointer select-none flex flex-col justify-between py-16"
     >
-      {/* Layer 1: Background Video */}
+      {/* 1. Background Video Layer */}
       <video
         ref={bgRef}
         src={bgVideo}
@@ -42,53 +45,45 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         muted // Muted to guarantee browser autoplay configurations do not halt execution
       />
 
-      {/* Layer 2: Audio Track */}
+      {/* 2. Audio Track Layer */}
       <audio ref={audioRef} src={trendingAudio} loop />
 
-      {/* Layer 3: Trendy Text Overlay */}
-      <div className="absolute top-16 left-0 w-full flex justify-center px-6 pointer-events-none z-10">
-        <h1 className="text-white text-[22px] font-extrabold text-center drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)] leading-snug uppercase tracking-wide">
+      {/* 3. Trendy Text Overlay Layer */}
+      <div className="relative z-10 px-6 w-full flex justify-center mt-4">
+        <h1 
+          className="text-white text-[24px] font-black text-center leading-snug uppercase tracking-wider"
+          style={{ textShadow: '0px 4px 12px rgba(0,0,0,1), 0px 2px 4px rgba(0,0,0,0.8)' }}
+        >
           {hookText}
         </h1>
       </div>
 
-      {/* Layer 4: Meme GIF Overlay */}
-      <div className="absolute bottom-16 left-0 w-full flex justify-center pointer-events-none z-10">
+      {/* 4. GIF on Top Layer (Includes a fallback if Brave Browser blocks the image) */}
+      <div className="relative z-10 w-full flex justify-center items-center px-4 mb-4">
         <img
           src={memeGif}
-          alt="Meme Reaction"
-          className="w-3/5 object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]"
+          alt="Meme"
+          className="w-4/5 max-h-[220px] object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] rounded-lg"
+          onError={(e) => {
+            // If Brave blocks the GIF, seamlessly fall back to a trendy Emoji layout so it never looks broken
+            e.currentTarget.style.display = 'none';
+            if (e.currentTarget.parentElement) {
+              e.currentTarget.parentElement.innerHTML = '<span style="font-size: 5rem; filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.8));">💀😭</span>';
+            }
+          }}
         />
       </div>
 
-      {/* UI Layer: Dynamic Play/Pause Screen State */}
+      {/* Play/Pause UI Overlay */}
       {!isPlaying && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-all z-40">
-          <div className="bg-white/20 p-5 rounded-full backdrop-blur-md shadow-xl border border-white/10 group-hover:scale-110 transition-transform">
+          <div className="bg-white/20 p-5 rounded-full backdrop-blur-md shadow-2xl border border-white/10 hover:scale-110 transition-transform duration-200">
             <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         </div>
       )}
-
-      {/* UI Layer: Subtle Pause Indicator on Hover when running */}
-      {isPlaying && (
-        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 flex items-center justify-center transition-all z-30 opacity-0 hover:opacity-100">
-          <div className="bg-black/40 p-4 rounded-full backdrop-blur-sm">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-            </svg>
-          </div>
-        </div>
-      )}
-
-      {/* UI Layer: TikTok/Reels Engagement Bar */}
-      <div className="absolute right-3 bottom-24 flex flex-col gap-4 pointer-events-none z-20">
-        <div className="w-10 h-10 bg-black/40 border border-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg text-lg">🤍</div>
-        <div className="w-10 h-10 bg-black/40 border border-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg text-lg">💬</div>
-        <div className="w-10 h-10 bg-black/40 border border-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg text-lg">↗️</div>
-      </div>
     </div>
   );
 }
