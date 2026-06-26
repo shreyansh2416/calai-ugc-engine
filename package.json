@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^4.0.0",
     "@ai-sdk/openai": "^4.0.0",
     "@ai-sdk/react": "^4.0.0",
     "@remotion/player": "^4.0.482",
