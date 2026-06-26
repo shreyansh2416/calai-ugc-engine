@@ -5,11 +5,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const bgRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // The 4 UGC Layers requested in the assignment
-  const bgVideo = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+  // THE FIX: Using universally trusted Vercel and Giphy CDNs that bypass Brave Shields
+  const bgVideo = "https://assets.vercel.com/video/upload/v1588629558/nextjs/next-video.mp4";
   const trendingAudio = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
   const hookText = "me acting like I know my macros so I just open calai.app and let it handle it";
-  const memeGif = "https://media1.tenor.com/m/8lqP2Yp-CjUAAAAd/pedro-pascal-pedro.gif"; 
+  const memeGif = "https://media.giphy.com/media/L0qTl8hl84QwGStXAI/giphy.gif"; 
 
   // Custom play handler ensures audio and video start together in perfect sync
   const handlePlay = () => {
