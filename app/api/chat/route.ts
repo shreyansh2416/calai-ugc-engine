@@ -1,102 +1,92 @@
-import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, generateText } from 'ai';
-
-const groq = createOpenAI({
-  baseURL: 'https://api.groq.com/openai/v1',
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-export const runtime = 'nodejs';
-
-// NEW, CURRENTLY SUPPORTED GROQ MODEL
-const MODEL_NAME = 'llama-3.3-70b-versatile'; 
+export const runtime = 'edge';
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    
-    const cleanMessages = messages
-      .filter((m: any) => m.role === 'user' || m.role === 'assistant')
-      .map((m: any) => ({ role: m.role, content: m.content }));
-
-    const lastMessage = cleanMessages[cleanMessages.length - 1].content.toLowerCase();
+    const lastMsg = messages[messages.length - 1].content.toLowerCase();
     const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
-    const urlMatch = lastMessage.match(urlRegex);
+    const match = lastMsg.match(urlRegex);
+
+    let responseText = "";
 
     // ==========================================
-    // ROUTE A: UGC GENERATION (Infinite AI Logic)
+    // ROUTE A: UGC GENERATION (Flawless Gen-Z Hooks)
     // ==========================================
-    if (urlMatch) {
-      const rawDomain = urlMatch[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
-      const brandName = rawDomain.toUpperCase();
+    if (match) {
+      const brand = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase();
       
-      // Ironclad Randomized Fallbacks (In case AI hallucinates or API fails)
-      const fallbacks = [
-        { hook: `BRO I WAS MANUALLY DOING THIS UNTIL ${brandName} 💀`, celeb: "IShowSpeed", bgPrompt: "dark rgb gaming room" },
-        { hook: `WHEN THEY ASK HOW I DID IT SO FAST BUT MY SECRET IS ${brandName} 🤫`, celeb: "The Rock", bgPrompt: "luxury modern gym locker" },
-        { hook: `MY ACTUAL REACTION WHEN ${brandName} DROPS THE HARDEST UPDATE 🕺🔥`, celeb: "Shaq", bgPrompt: "modern luxury kitchen" },
-        { hook: `ME WATCHING EVERYONE STRUGGLE WHILE I JUST USE ${brandName} 🍷🗿`, celeb: "Drake", bgPrompt: "luxury podcast studio" },
-        { hook: `HOW IT FEELS TO SURVIVE WITHOUT USING ${brandName} 😭`, celeb: "Kevin Hart", bgPrompt: "messy office desk" }
-      ];
-      
-      let ugcData = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      // Cycle through 5 distinct themes (1: Drake, 2: The Rock, 3: IShowSpeed, 4: Shaq, 5: Kevin Hart)
+      const themeId = Math.floor(Math.random() * 5) + 1;
+      const celebs = ["Drake", "The Rock", "IShowSpeed", "Shaq", "Kevin Hart"];
+      const currentCeleb = celebs[themeId - 1];
+
+      let hook = `POV: YOU FINALLY STOPPED GATEKEEPING ${brand} 💀`;
 
       try {
-        // Call Groq to dynamically write the marketing hook
-        const aiDirector = await generateText({
-          model: groq(MODEL_NAME),
-          system: `You are an elite, unhinged Gen-Z marketing director in 2026. The user is providing a product URL. 
-          Output ONLY a raw JSON object (no markdown, no text) with these exact keys:
-          - "hook": A very funny, trendy, clever TikTok-style text overlay hook about the product (max 12 words).
-          - "celeb": The exact name of a massively hyped, trending celebrity (e.g., IShowSpeed, Drake, The Rock, Shaq, Kevin Hart).
-          - "bgPrompt": A 4-word visual description of a realistic room/background that matches the vibe (e.g., "dark neon gaming room").`,
-          prompt: `Write the UGC metadata for this product: ${brandName}`
+        // Native Fetch to Groq (Bypasses all Vercel SDK crashes)
+        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ 
+              role: 'system', 
+              content: `You are a witty, unhinged Gen-Z marketing director. Write a clever, funny, highly relatable 10 to 15 word text overlay for a video about ${brand}. The video features ${currentCeleb}. Make it sound like a viral TikTok meme. DO NOT use quotes or hashtags.` 
+            }]
+          })
         });
-
-        const jsonString = aiDirector.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(jsonString);
-        if (parsed.hook && parsed.celeb && parsed.bgPrompt) {
-            ugcData = parsed;
+        const data = await groqRes.json();
+        if (data.choices && data.choices[0].message.content) {
+          hook = data.choices[0].message.content.trim().replace(/^"|"$/g, '');
         }
-      } catch (e) { 
-        console.error("Groq JSON parsing failed, using randomized fallback."); 
-      }
+      } catch (e) { console.error("Groq text generation failed, using fallback."); }
 
-      // Pack the AI's choices into a safe URL
-      const payloadUrl = `https://ugc-engine.app/render/${brandName}?hook=${encodeURIComponent(ugcData.hook)}&celeb=${encodeURIComponent(ugcData.celeb)}&bg=${encodeURIComponent(ugcData.bgPrompt)}`;
-      const responseText = `I've analyzed the site and organized a custom UGC layout for you. Check out the generated clip here: ${payloadUrl}`;
-      
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const words = responseText.split(' ');
-          for (let i = 0; i < words.length; i++) {
-            controller.enqueue(encoder.encode(words[i] + ' '));
-            await new Promise(resolve => setTimeout(resolve, 30)); 
-          }
-          controller.close();
-        },
-      });
-      return new Response(stream, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+      // Ultra-short URL prevents cutting off data
+      const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&h=${encodeURIComponent(hook)}`;
+      responseText = `I've analyzed the site and organized a custom UGC layout for you. Check out the generated clip here: ${url}`;
     } 
     
     // ==========================================
-    // ROUTE B: NATURAL SMALL TALK
+    // ROUTE B: NATURAL SMALL TALK (No `...` Hangs)
     // ==========================================
     else {
-      const result = await streamText({
-        model: groq(MODEL_NAME),
-        system: `You are a helpful, witty AI assistant. 
-        - If the user asks general questions, answer them accurately and naturally like ChatGPT.
-        - If they say "hi", greet them naturally.
-        - If they ask what you do, tell them you generate UGC marketing videos from product URLs.
-        - NEVER output a video URL in this mode. Keep answers concise.`,
-        messages: cleanMessages,
-      });
-      return result.toTextStreamResponse();
+      try {
+        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: "You are a witty UGC video AI. Answer concisely and naturally. If asked what you do, say you generate UGC marketing videos from URLs." },
+              ...messages.map((m: any) => ({ role: m.role, content: m.content })).slice(-3)
+            ]
+          })
+        });
+        const data = await groqRes.json();
+        responseText = data.choices[0].message.content;
+      } catch (e) {
+        responseText = "I'm an AI specialized in UGC video generation! Drop a product link, and I'll create a marketing video for it.";
+      }
     }
+
+    // ==========================================
+    // UNIVERSAL LOCAL STREAMER
+    // ==========================================
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const words = responseText.split(' ');
+        for (let i = 0; i < words.length; i++) {
+          controller.enqueue(encoder.encode(words[i] + ' '));
+          await new Promise(resolve => setTimeout(resolve, 30)); 
+        }
+        controller.close();
+      },
+    });
+
+    return new Response(stream, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+
   } catch (error: any) {
-    console.error("API ROUTE ERROR:", error);
     return new Response(error.message || "Internal Server Error", { status: 500 });
   }
 }

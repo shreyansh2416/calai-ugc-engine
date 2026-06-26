@@ -12,35 +12,13 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bgUrl: "https://image.pollinations.ai/prompt/aesthetic%20modern%20room?width=800&height=1200&nologo=true",
+    bg: "https://images.pexels.com/photos/6954162/pexels-photo-6954162.jpeg?auto=compress&cs=tinysrgb&w=800",
+    gif: "https://media.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif?ct=s",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "POV: AUTOMATING VIDEO CREATION 🚀",
-    celeb: "The Rock"
+    text: "POV: AUTOMATING VIDEO CREATION 🚀"
   });
 
-  // Start with a transparent pixel to prevent broken image borders before load
-  const [stickerUrl, setStickerUrl] = useState("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"); 
-
   const baseVideo = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-
-  const audioPool = [
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
-  ];
-
-  // BULLETPROOF FALLBACK MAP: 100% Guaranteed transparent stickers if API fails
-  const reliableStickers: Record<string, string> = {
-    "drake": "https://media.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif?ct=s",
-    "ishowspeed": "https://media.giphy.com/media/L-qQf_iKkQ4AAAAi/giphy.gif?ct=s",
-    "speed": "https://media.giphy.com/media/L-qQf_iKkQ4AAAAi/giphy.gif?ct=s",
-    "rock": "https://media.giphy.com/media/1OcbvYyS13UAAAAi/giphy.gif?ct=s",
-    "kevin": "https://media.giphy.com/media/3o7TKr3nzbh5WgCFxe/giphy.gif?ct=s",
-    "shaq": "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif?ct=s",
-    "default": "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif?ct=s"
-  };
 
   useEffect(() => {
     let rawUrl = "";
@@ -48,43 +26,42 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     else if (videoState && typeof videoState.url === 'string') rawUrl = videoState.url;
 
     if (rawUrl && rawUrl.includes('/render/')) {
-      try {
-        const urlObj = new URL(rawUrl);
-        const hook = urlObj.searchParams.get('hook') || "POV: AUTOMATING VIDEO CREATION";
-        const celeb = urlObj.searchParams.get('celeb') || "Drake";
-        const bgPrompt = urlObj.searchParams.get('bg') || "cool neon room";
-        
-        const randomAudio = audioPool[Math.floor(Math.random() * audioPool.length)];
-        const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(bgPrompt)}?width=800&height=1200&nologo=true`;
+      const urlObj = new URL(rawUrl);
+      const brandName = rawUrl.split('/').pop()?.split('?')[0] || "THE APP";
+      const themeId = parseInt(urlObj.searchParams.get('t') || "1");
+      const hookText = urlObj.searchParams.get('h') || `POV: USING ${brandName} FOR THE FIRST TIME`;
 
-        setVideoData({
-          brand: rawUrl.split('/').pop()?.split('?')[0] || "THE APP",
-          text: hook,
-          celeb: celeb,
-          bgUrl: dynamicBg,
-          audio: randomAudio
-        });
-
-        // Determine the safest fallback sticker based on the celebrity name
-        const celebLower = celeb.toLowerCase();
-        let safeFallback = reliableStickers["default"];
-        for (const key in reliableStickers) {
-          if (celebLower.includes(key)) safeFallback = reliableStickers[key];
+      // 5 COHESIVE THEMES: The Background perfectly matches the Celeb's vibe
+      const themes: Record<number, any> = {
+        1: { // Drake (Smug) -> Luxury Studio
+          bg: "https://images.pexels.com/photos/6954162/pexels-photo-6954162.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif?ct=s",
+          audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        },
+        2: { // The Rock (Suspicious) -> Dark Gym/Locker
+          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media.giphy.com/media/1OcbvYyS13UAAAAi/giphy.gif?ct=s",
+          audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        },
+        3: { // IShowSpeed (Rage) -> RGB Gaming Room
+          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media.giphy.com/media/L-qQf_iKkQ4AAAAi/giphy.gif?ct=s",
+          audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+        },
+        4: { // Shaq (Vibing) -> Modern Kitchen
+          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif?ct=s",
+          audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+        },
+        5: { // Kevin Hart (Confused) -> Messy Office
+          bg: "https://images.pexels.com/photos/373076/pexels-photo-373076.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media.giphy.com/media/3o7TKr3nzbh5WgCFxe/giphy.gif?ct=s",
+          audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
         }
+      };
 
-        // Fetch Live Tenor API - If it fails due to rate limits, seamlessly use the safe fallback
-        fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(celeb + ' transparent sticker')}&key=LIVDSRZULELA&limit=1`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.results && data.results.length > 0 && data.results[0].media[0].gif.url) {
-              setStickerUrl(data.results[0].media[0].gif.url);
-            } else {
-              setStickerUrl(safeFallback);
-            }
-          })
-          .catch(() => setStickerUrl(safeFallback));
-
-      } catch (e) { console.error("URL Parsing Error"); }
+      const selectedTheme = themes[themeId] || themes[1];
+      setVideoData({ brand: brandName, text: hookText, ...selectedTheme });
     }
   }, [videoState]);
 
@@ -118,18 +95,18 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         onClick={handlePlayToggle}
         className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
       >
-        <img src={videoData.bgUrl} alt="Environment" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" />
+        <img src={videoData.bg} alt="Environment" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" />
         <video ref={videoRef} src={baseVideo} loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none z-[1]" />
         <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-        {/* Guaranteed Transparent Celebrity */}
+        {/* 100% Transparent Celebrity */}
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-[2] pb-20">
-          <img src={stickerUrl} alt={videoData.celeb} className="w-[190px] h-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,1)]" />
+          <img src={videoData.gif} alt="Celebrity Layer" className="w-[190px] h-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,1)]" />
         </div>
 
-        {/* Dynamic Funny Text */}
+        {/* Dynamic Clever Text */}
         <div className="absolute top-12 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
-          <h3 className="text-white text-[22px] leading-[1.1] font-black uppercase tracking-wide drop-shadow-[0_6px_10px_rgba(0,0,0,1)] text-stroke">
+          <h3 className="text-white text-[22px] leading-[1.15] font-black uppercase tracking-wide drop-shadow-[0_6px_10px_rgba(0,0,0,1)] text-stroke">
             {videoData.text}
           </h3>
         </div>
