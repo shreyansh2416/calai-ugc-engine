@@ -12,34 +12,33 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // THE FIX: Scrub the messages to remove Next.js metadata (id, createdAt) 
-    // so Groq's strict API does not crash on the second turn.
+    // 1. Strictly map the history so Groq doesn't choke on Next.js hidden metadata
     const cleanMessages = messages.map((m: any) => ({
       role: m.role,
       content: m.content
     }));
 
+    // 2. Inject the system instructions directly into the message array
+    // This bypasses Groq's system parameter bug entirely.
+    cleanMessages.unshift({
+      role: 'system',
+      content: `You are a helpful AI assistant that generates UGC marketing videos.
+      - If the user says hi, greet them naturally.
+      - If the user asks what you do, say: "I can generate UGC videos! Just send me a product URL."
+      - IF the user provides a product URL (like a website link), you MUST include this exact text somewhere in your response: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+      - Do not output the URL unless a product link is provided.`
+    });
+
     const result = await streamText({
-      // Switched to 8b-instant to prevent rate-limiting freezes and ensure fast streaming
       model: groq('llama-3.1-8b-instant'),
-      system: `You are a helpful, clever, and friendly AI assistant that generates UGC (User-Generated Content) marketing videos.
-
-      Follow these strict conversational rules:
-      1. If the user just says "hi" or greets you, greet them back naturally and enthusiastically.
-      2. If the user asks "What can you do?" or asks about your capabilities, respond with something like: "I can generate UGC videos for you! Just send me a product URL and I'll create an engaging short-form marketing video."
-      3. IF AND ONLY IF the user provides a product URL (like a website link) or explicitly asks to generate a video for a product:
-         - Acknowledge the product.
-         - Tell them you are organizing the assets and assembling the layers.
-         - You MUST include this exact trigger URL in your response so the system can render the video player: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-
-      Keep your responses concise, natural, and highly relevant to social media marketing. Do NOT include the video URL in regular conversation unless a product link was provided.`,
       messages: cleanMessages,
     });
 
     return result.toTextStreamResponse();
     
   } catch (error: any) {
-    console.error("API ROUTE ERROR:", error);
-    return new Response(error.message || "Internal Server Error", { status: 500 });
+    // This will print the exact error reason in your Vercel logs if it fails again
+    console.error("GROQ API CRASH:", error);
+    return new Response(error.message || "Failed to fetch from Groq", { status: 500 });
   }
 }
