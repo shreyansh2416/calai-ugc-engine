@@ -1,80 +1,96 @@
+'use client';
+
 import React, { useRef, useState } from 'react';
 
-export default function UGCPlayer({ videoState }: { videoState: any }) {
-  const [isPlaying, setIsPlaying] = useState(false);
+interface UGCVideoProps {
+  videoUrl: string;
+}
+
+export default function UGCVideo({ videoUrl }: UGCVideoProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Layer 1: Background Image (Gym Aesthetic)
-  const bgImage = "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800&auto=format&fit=crop"; 
+  // Layer 4 Asset: Classic transparent background meme cutout
+  const memeGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Bnd2NndXZ4YW15d2g1ZXE2Z3B6cHd5ZW15b2t1ZnB4bm92bTA0diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/jWexZylOmfadO/giphy.gif";
   
-  // Layer 2: Trending Audio
-  const trendingAudio = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3";
-  
-  // Layer 3: Trendy Text Overlay
-  const hookText = "Me acting like I know my macros so I just open CalAI and let it handle it";
-  
-  // Layer 4: 100% Transparent Animated Asset
-  const memeGif = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Exploding%20Head.png";
+  // Layer 1 Asset: Static Background Context 
+  const backgroundPoster = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop";
 
-  // Global toggle enables clicking anywhere on the frame to play or pause
-  const handleTogglePlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!audioRef.current) return;
+  const handlePlayToggle = () => {
+    if (!videoRef.current || !audioRef.current) return;
 
     if (isPlaying) {
+      videoRef.current.pause();
       audioRef.current.pause();
-      setIsPlaying(false);
     } else {
-      audioRef.current.play().catch((err) => console.error("Audio play failed:", err));
-      setIsPlaying(true);
+      videoRef.current.play().catch(err => console.log("Video playback interrupted:", err));
+      audioRef.current.play().catch(err => console.log("Audio playback interrupted:", err));
     }
+    setIsPlaying(!isPlaying);
   };
 
   return (
-    // 'mx-auto' perfectly centers the player in the chat box
-    <div 
-      onClick={handleTogglePlay}
-      className="mx-auto my-4 w-[300px] h-[533px] relative overflow-hidden rounded-xl border-2 border-gray-800 shadow-2xl bg-black cursor-pointer select-none flex flex-col justify-between py-16"
-    >
-      {/* 1. Background Photo Layer */}
-      <img
-        src={bgImage}
-        alt="Background"
-        className="absolute top-0 left-0 w-full h-full object-cover opacity-80"
-      />
-
-      {/* 2. Audio Track Layer */}
-      <audio ref={audioRef} src={trendingAudio} loop />
-
-      {/* 3. Trendy Text Overlay Layer */}
-      <div className="relative z-10 px-6 w-full flex justify-center mt-4">
-        <h1 
-          className="text-white text-[24px] font-black text-center leading-snug uppercase tracking-wider"
-          style={{ textShadow: '0px 4px 12px rgba(0,0,0,1), 0px 2px 4px rgba(0,0,0,0.8)' }}
-        >
-          {hookText}
-        </h1>
-      </div>
-
-      {/* 4. Transparent GIF on Top Layer */}
-      <div className="relative z-10 w-full flex justify-center items-end px-4 mb-4 h-full pb-10">
-        <img
-          src={memeGif}
-          alt="Transparent Meme"
-          className="w-[120%] max-h-[300px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.8)]"
+    <div className="w-full flex justify-center my-6">
+      {/* CRITICAL FIX: Added 'relative' and 'overflow-hidden' explicitly to this frame.
+        This forces all absolute sub-elements (like the meme) to remain trapped inside the boundaries 
+        of the card layout, preventing leaks when scrolling the parent chat window.
+      */}
+      <div 
+        onClick={handlePlayToggle}
+        className="relative w-[320px] h-[568px] bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
+      >
+        {/* LAYER 1: Base Ambient Background */}
+        <img 
+          src={backgroundPoster} 
+          alt="UGC Background" 
+          className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity pointer-events-none"
         />
-      </div>
 
-      {/* Play/Pause UI Overlay */}
-      {!isPlaying && (
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-all z-40">
-          <div className="bg-white/20 p-5 rounded-full backdrop-blur-md shadow-2xl border border-white/10 transition-transform duration-200">
-            <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
+        {/* LAYER 2: Live Continuous Video Feed */}
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+        />
+
+        {/* LAYER 3: Hidden Audio Track */}
+        <audio 
+          ref={audioRef}
+          src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+          loop
+        />
+
+        {/* LAYER 4: The Contained Transparent Meme Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+          <img 
+            src={memeGif} 
+            alt="Meme Overlay" 
+            className="w-[200px] h-auto object-contain transform translate-y-12"
+          />
         </div>
-      )}
+
+        {/* LAYER 5: Dynamic Text Overlay Hook */}
+        <div className="absolute bottom-12 left-0 right-0 px-4 text-center pointer-events-none z-30">
+          <h3 className="text-white text-xl font-black uppercase tracking-wider drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] text-stroke">
+            POV: Automating Video Creation 🚀
+          </h3>
+        </div>
+
+        {/* INTERACTION COMPONENT: Overlay Play Button Indicator */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity group-hover:bg-black/40 z-40">
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/40 shadow-lg transform transition group-hover:scale-110">
+              <svg className="w-8 h-8 text-white fill-current translate-x-0.5" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
