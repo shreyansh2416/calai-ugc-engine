@@ -6,7 +6,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // The 4 UGC Layers requested in the assignment
-  const bgVideo = "https://assets.mixkit.co/videos/preview/mixkit-man-working-out-on-a-rowing-machine-41775-large.mp4";
+  const bgVideo = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
   const trendingAudio = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
   const hookText = "me acting like I know my macros so I just open calai.app and let it handle it";
   const memeGif = "https://media1.tenor.com/m/8lqP2Yp-CjUAAAAd/pedro-pascal-pedro.gif"; 
