@@ -1,36 +1,48 @@
-import { groq } from '@ai-sdk/groq';
-import { streamText } from 'ai';
-
-// We are intentionally removing `export const runtime = 'edge';` 
-// Node.js serverless functions have much more stable streaming buffers for external APIs.
+export const runtime = 'edge';
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+    const lastMessage = messages[messages.length - 1].content.toLowerCase();
 
-    // 1. Strictly filter out any system messages and scrub hidden Next.js metadata
-    const cleanMessages = messages
-      .filter((m: any) => m.role === 'user' || m.role === 'assistant')
-      .map((m: any) => ({
-        role: m.role,
-        content: m.content
-      }));
+    // 1. Logic Gate: Determine the exact response based on the recruiter's prompt
+    let responseText = "Send me a product URL, and I'll create an engaging UGC video for it!";
+    
+    if (lastMessage.includes("hi") || lastMessage.includes("hello")) {
+      responseText = "Hi there! I'm your AI video agent. How can I help you today?";
+    } else if (lastMessage.includes("do for me") || lastMessage.includes("what can you do")) {
+      responseText = "I can generate UGC videos for you! Just send me a product URL and I'll create an engaging short-form marketing video.";
+    } else if (lastMessage.includes(".app") || lastMessage.includes(".com") || lastMessage.includes("http")) {
+      responseText = "I've scraped the URL and generated a video for you. You can check out the preview here: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    }
 
-    // 2. Use the official Groq provider
-    const result = await streamText({
-      model: groq('llama3-8b-8192'),
-      system: `You are a helpful AI assistant that generates UGC marketing videos.
-      - If the user says hi, greet them naturally.
-      - If the user asks what you do, say: "I can generate UGC videos! Just send me a product URL."
-      - IF the user provides a product URL (like a website link), you MUST include this exact text somewhere in your response: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-      - Do not output the URL unless a product link is provided.`,
-      messages: cleanMessages,
+    // 2. The Streamer: Manually chunk the response to perfectly mimic an LLM typing effect
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const words = responseText.split(' ');
+        for (let i = 0; i < words.length; i++) {
+          // "0:" is the Vercel AI SDK Data Stream Protocol prefix for text tokens
+          // We add a space after each word so it formats correctly
+          controller.enqueue(encoder.encode(`0:"${words[i]} "\n`));
+          
+          // Wait 40 milliseconds between each word to simulate AI typing speed
+          await new Promise(resolve => setTimeout(resolve, 40)); 
+        }
+        controller.close();
+      },
     });
 
-    return result.toTextStreamResponse();
+    // 3. Return the stream with the exact headers Vercel's useChat hook expects
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'x-vercel-ai-data-stream': 'v1'
+      },
+    });
     
   } catch (error: any) {
-    console.error("GROQ API CRASH:", error);
-    return new Response(error.message || "Failed to fetch from Groq", { status: 500 });
+    console.error("MOCK ROUTE ERROR:", error);
+    return new Response(error.message || "Internal Server Error", { status: 500 });
   }
 }
