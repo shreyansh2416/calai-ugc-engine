@@ -8,13 +8,12 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [copyText, setCopyText] = useState("Copy Link");
 
-  // Default Fallback Data
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
     bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-    gif: "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif",
+    gif: "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif?ct=s",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "POV: AUTOMATING VIDEO CREATION"
+    text: "POV: AUTOMATING VIDEO CREATION 🚀"
   });
 
   const baseVideo = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
@@ -29,37 +28,37 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const brandName = parts[0] || "THE APP";
       const themeId = parseInt(parts[1]) || 1;
 
-      // 5 STRICTLY UNIQUE THEMES (Guarantees different music, gif, bg, and text every time)
+      // 5 STRICTLY RELEVANT, FUNNY THEMES (Celeb Sticker + Vibe + Trendy Text + Music)
       const themes = [
-        { // 1: The Suspect / Gym Vibe
-          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzBqZXJ4YmR4c3Z4am15cTZ0M2p5bDJ1b3V5Z215eDFlOHk1biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7qE1YN7aBOFPRw8E/giphy.gif", // Travolta
+        { // 1: The "Sigma/Smug" Vibe (Drake)
+          bg: "https://images.pexels.com/photos/6954162/pexels-photo-6954162.jpeg?auto=compress&cs=tinysrgb&w=800", // Luxury Podcast Studio
+          gif: "https://media.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif?ct=s", // Drake Approving
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-          text: `ME ACTING LIKE I KNOW WHAT I'M DOING UNTIL I OPENED ${brandName}`
+          text: `ME WATCHING EVERYONE STRUGGLE WHILE I JUST USE ${brandName} 🍷🗿`
         },
-        { // 2: The Chill / Office Vibe
-          bg: "https://images.pexels.com/photos/373076/pexels-photo-373076.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif", // Shaq Chill
+        { // 2: The "Suspicious/Secret" Vibe (The Rock)
+          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800", // Gym / Locker Room
+          gif: "https://media.giphy.com/media/1OcbvYyS13UAAAAi/giphy.gif?ct=s", // The Rock Eyebrow Raise
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-          text: `POV: YOU FINALLY STOPPED GATEKEEPING ${brandName}`
+          text: `WHEN THEY ASK HOW I GOT IT DONE SO FAST BUT MY SECRET IS ${brandName} 🤫`
         },
-        { // 3: The Rage / Gaming Vibe
-          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media.giphy.com/media/11tTNkNy1SdXGg/giphy.gif", // Angry Keyboard Guy
+        { // 3: The "Rage/Shock" Vibe (IShowSpeed)
+          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800", // RGB Gaming Room
+          gif: "https://media.giphy.com/media/L-qQf_iKkQ4AAAAi/giphy.gif?ct=s", // IShowSpeed Barking/Shocked
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-          text: `WHEN ${brandName} CASUALLY DROPS THE BEST FEATURE OF THE YEAR`
+          text: `BRO I WAS MANUALLY DOING THIS UNTIL I FOUND ${brandName} 💀`
         },
-        { // 4: The Approval / Studio Vibe
-          bg: "https://images.pexels.com/photos/6954162/pexels-photo-6954162.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media.giphy.com/media/5wWf7H89XdRvXepbVg/giphy.gif", // Drake Approval
+        { // 4: The "Chill/Vibing" Vibe (Shaq)
+          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800", // Kitchen / Chill room
+          gif: "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif?ct=s", // Shaq Vibing/Nodding
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-          text: `MY THERAPIST TOLD ME TO FIND PEACE SO I LOGGED INTO ${brandName}`
+          text: `MY ACTUAL REACTION WHEN ${brandName} DROPS THE HARDEST UPDATE 🕺🔥`
         },
-        { // 5: The Confused / Retail Vibe
-          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media.giphy.com/media/3o7TKr3nzbh5WgCFxe/giphy.gif", // Kevin Hart Confused
+        { // 5: The "Confused/Lost" Vibe (Kevin Hart)
+          bg: "https://images.pexels.com/photos/373076/pexels-photo-373076.jpeg?auto=compress&cs=tinysrgb&w=800", // Office / Desk
+          gif: "https://media.giphy.com/media/3o7TKr3nzbh5WgCFxe/giphy.gif?ct=s", // Kevin Hart Confused
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-          text: `HOW IT FEELS TO USE ${brandName} INSTEAD OF DOING IT MANUALLY`
+          text: `HOW IT FEELS TO TRY AND SURVIVE WITHOUT USING ${brandName} 😭`
         }
       ];
 
@@ -99,10 +98,12 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         
         <audio ref={audioRef} src={videoData.audio} loop />
 
+        {/* 100% Transparent Celebrity Sticker */}
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-[2] pb-20">
           <img src={videoData.gif} alt="Celebrity Layer" className="w-[190px] h-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.9)]" />
         </div>
 
+        {/* Relevant Funny Hook */}
         <div className="absolute top-12 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
           <h3 className="text-white text-[20px] leading-[1.2] font-black uppercase tracking-wide drop-shadow-[0_5px_8px_rgba(0,0,0,1)] text-stroke">
             {videoData.text}
@@ -118,7 +119,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         )}
       </div>
 
-      {/* 2. THE ACTION BAR (Copy & Download) */}
+      {/* 2. THE ACTION BAR */}
       <div className="flex w-[280px] sm:w-[320px] justify-between gap-3 mt-4">
         <button 
           onClick={handleCopy}
