@@ -2,14 +2,19 @@
 
 import React, { useRef, useState } from 'react';
 
-interface UGCVideoProps {
-  videoUrl: string;
-}
-
-export default function UGCVideo({ videoUrl }: UGCVideoProps) {
+// FIX: Restored the original function name and props so page.tsx compiles perfectly
+export default function UGCPlayer({ videoState }: { videoState: any }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Safely extract the dynamic URL passed from the chat route, or fallback to default
+  let videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  if (typeof videoState === 'string' && videoState.includes('http')) {
+    videoUrl = videoState;
+  } else if (videoState && typeof videoState.url === 'string') {
+    videoUrl = videoState.url;
+  }
 
   // Layer 4 Asset: High-Definition Transparent Confused John Travolta Cutout
   const memeGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzBqZXJ4YmR4c3Z4am15cTZ0M2p5bDJ1b3V5Z215eDFlOHk1biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7qE1YN7aBOFPRw8E/giphy.gif";
