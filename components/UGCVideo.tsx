@@ -2,13 +2,12 @@
 
 import React, { useRef, useState } from 'react';
 
-// FIX: Restored the original function name and props so page.tsx compiles perfectly
 export default function UGCPlayer({ videoState }: { videoState: any }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Safely extract the dynamic URL passed from the chat route, or fallback to default
+  // Safely extract the URL
   let videoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   if (typeof videoState === 'string' && videoState.includes('http')) {
     videoUrl = videoState;
@@ -16,11 +15,27 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     videoUrl = videoState.url;
   }
 
-  // Layer 4 Asset: High-Definition Transparent Confused John Travolta Cutout
-  const memeGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzBqZXJ4YmR4c3Z4am15cTZ0M2p5bDJ1b3V5Z215eDFlOHk1biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7qE1YN7aBOFPRw8E/giphy.gif";
-  
-  // Layer 1 Asset: Ambient Blurred Background Frame Context
-  const backgroundPoster = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop";
+  // DYNAMIC THEME ENGINE: Match the background and meme to the specific video
+  let bgPoster = "";
+  let memeAsset = "";
+  let hookText = "";
+
+  if (videoUrl.includes("BigBuckBunny")) {
+    // THEME 1: CalAI -> Gym Background + The Rock (Transparent)
+    bgPoster = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format&fit=crop"; 
+    memeAsset = "https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif"; 
+    hookText = "ME ACTING LIKE I KNOW MY MACROS SO I JUST OPEN CALAI";
+  } else if (videoUrl.includes("ElephantsDream")) {
+    // THEME 2: YouTube -> Gaming/Study Room + IShowSpeed (Transparent)
+    bgPoster = "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=1000&auto=format&fit=crop"; 
+    memeAsset = "https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif"; 
+    hookText = "WHEN I FIND A HIDDEN GEM ON YOUTUBE";
+  } else {
+    // THEME 3: Generic/Nike -> Retail Store + Drake (Transparent)
+    bgPoster = "https://images.unsplash.com/photo-1556906781-9a412961c28c?q=80&w=1000&auto=format&fit=crop"; 
+    memeAsset = "https://media.tenor.com/8a6Q4kO7pBwAAAAi/drake-yes.gif"; 
+    hookText = "POV: FINDING THE PERFECT PRODUCT ONLINE";
+  }
 
   const handlePlayToggle = () => {
     if (!videoRef.current || !audioRef.current) return;
@@ -36,21 +51,19 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   };
 
   return (
-    // style={{ isolation: 'isolate' }} builds a bulletproof wall around this component. 
-    // It prevents any internal z-index layers from bleeding over external elements like your text box.
     <div className="w-full flex justify-center my-6" style={{ isolation: 'isolate' }}>
       <div 
         onClick={handlePlayToggle}
         className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
       >
-        {/* LAYER 1: Base Ambient Background Image */}
+        {/* LAYER 1: Dynamic Background Image */}
         <img 
-          src={backgroundPoster} 
+          src={bgPoster} 
           alt="UGC Context Background" 
           className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity pointer-events-none"
         />
 
-        {/* LAYER 2: Live Continuous Video Feed */}
+        {/* LAYER 2: Live Video Feed */}
         <video
           ref={videoRef}
           src={videoUrl}
@@ -60,30 +73,30 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-[1]"
         />
 
-        {/* LAYER 3: Hidden Audio Track */}
+        {/* LAYER 3: Audio Track */}
         <audio 
           ref={audioRef}
           src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
           loop
         />
 
-        {/* LAYER 4: True Transparent Human Cutout Meme Overlay */}
+        {/* LAYER 4: Famous Transparent Meme Cutout with drop-shadow for 3D depth */}
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-[2] pb-24">
           <img 
-            src={memeGif} 
-            alt="Human Meme Cutout" 
-            className="w-[180px] h-auto object-contain"
+            src={memeAsset} 
+            alt="Hyped Meme Cutout" 
+            className="w-[180px] h-auto object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]"
           />
         </div>
 
-        {/* LAYER 5: Text Overlay Captions */}
+        {/* LAYER 5: Dynamic Text Hook */}
         <div className="absolute bottom-8 left-0 right-0 px-4 text-center pointer-events-none z-[3]">
           <h3 className="text-white text-lg sm:text-xl font-black uppercase tracking-wider drop-shadow-[0_4px_4px_rgba(0,0,0,0.9)] text-stroke">
-            POV: Automating Video Creation 🚀
+            {hookText} 🚀
           </h3>
         </div>
 
-        {/* INTERACTION UI: Custom Glassmorphic Play Screen */}
+        {/* Play Button Overlay */}
         {!isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity group-hover:bg-black/50 z-[4]">
             <div className="w-14 h-14 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-lg transform transition group-hover:scale-110">

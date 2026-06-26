@@ -7,30 +7,31 @@ export async function POST(req: Request) {
 
     let responseText = "";
 
-    // PRIORITY 1: Specific Brand URLs (Checked first to avoid any substring conflicts)
+    // 1. Specific Brand URLs
     if (lastMessage.includes("calai")) {
       responseText = "I've analyzed calai.app and synthesized a custom marketing performance hook. View the generated clip here: https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
     } else if (lastMessage.includes("youtube")) {
       responseText = "I've parsed the video infrastructure for youtube.com and prepared an entertainment variant. View the clip here: https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
-    } else if (lastMessage.includes("nike")) {
-      responseText = "I've crawled the target landing page for nike.com and matched it with an optimal e-commerce baseline template. View the clip here: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    } else if (lastMessage.includes("nike") || lastMessage.includes("shop")) {
+      responseText = "I've crawled the target landing page and matched it with an optimal e-commerce baseline template. View the clip here: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4";
     } 
     
-    // PRIORITY 2: Generic URLs
+    // 2. Generic URLs
     else if (lastMessage.includes(".app") || lastMessage.includes(".com") || lastMessage.includes("http") || lastMessage.includes("www")) {
       responseText = "I've crawled the target landing page and matched it with an optimal baseline template. View the clip here: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4";
     } 
     
-    // PRIORITY 3: Explicit Conversational Phrases (Checked last to prevent words like 'this' or 'think' from breaking URLs)
+    // 3. Conversational Handling (Includes unrelated question fallback)
     else if (lastMessage.includes("do for me") || lastMessage.includes("what can you do") || lastMessage.includes("doing") || lastMessage.includes("what are u")) {
       responseText = "I can generate UGC videos for you! Just send me a product URL and I'll create an engaging short-form marketing video.";
     } else if (lastMessage.trim() === "hi" || lastMessage.trim() === "hello" || lastMessage.startsWith("hi ")) {
       responseText = "Hi there! I'm your AI video agent. How can I help you today?";
+    } else if (lastMessage.includes("weather") || lastMessage.includes("who is") || lastMessage.includes("?")) {
+      responseText = "I'm an AI specialized in UGC video generation! Drop a product link (like calai.app or nike.com), and I'll create a marketing video for it.";
     } else {
       responseText = "Send me a product URL, and I'll create an engaging UGC video for it!";
     }
 
-    // Pure Text Streamer Pipeline
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
@@ -48,7 +49,6 @@ export async function POST(req: Request) {
     });
     
   } catch (error: any) {
-    console.error("MOCK ROUTE ERROR:", error);
     return new Response(error.message || "Internal Server Error", { status: 500 });
   }
 }
