@@ -12,26 +12,20 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-    gif: "https://media1.tenor.com/m/8a6Q4kO7pBwAAAAd/drake-computer.gif",
+    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
+    gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/L-qQf_iKkQ4AAAAC/ishowspeed-speed.gif"),
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "LITERAL CHEAT CODE FOR THE APP"
+    text: "LITERAL CHEAT CODE FOR AUTOMATION"
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
-  // EXPANDED 10-TRACK AUDIO POOL (Prevents repetitive music)
   const audios: Record<number, string> = {
     1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     2: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
     3: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
     4: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    5: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-    6: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-    7: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",
-    8: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3",
-    9: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",
-    10: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    5: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
   };
 
   useEffect(() => {
@@ -49,27 +43,27 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const rawHook = urlObj.searchParams.get('h') || `BRO-THIS-IS-INSANE`;
       const hookText = rawHook.replace(/-/g, ' ');
 
-      // BULLETPROOF CDNs: Pexels for BGs, Tenor Media1 for GIFs. Zero Giphy.
+      // ALL GIFS ARE NOW PROXIED. Adblockers will see them as local files and allow them through.
       const themes: Record<number, any> = {
-        1: { // Food/Eating -> Shaq Eating + Restaurant
-          bg: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/qLhVn0B_n_kAAAAd/shaq-shaquille-o-neal.gif" 
+        1: { // Food -> Shaq Eating
+          bg: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800",
+          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/qLhVn0B_n_kAAAAC/shaq-shaquille-o-neal.gif")
         },
-        2: { // Studying/Work -> Drake Laptop + Library/Office
-          bg: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/8a6Q4kO7pBwAAAAd/drake-computer.gif"
+        2: { // Study -> Drake Laptop
+          bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800",
+          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/mOPEt9lB5aUAAAAC/drake-computer.gif")
         },
-        3: { // Home/Lifestyle -> Kevin Hart Confused + Living Room
-          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/3Gv2x_BovI4AAAAd/math-calculate.gif"
+        3: { // Home -> Kevin Hart
+          bg: "https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=800",
+          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/3Gv2x_BovI4AAAAC/math-calculate.gif")
         },
-        4: { // Gaming/Tech -> IShowSpeed + RGB Gaming Room
-          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/L-qQf_iKkQ4AAAAd/ishowspeed-speed.gif"
+        4: { // Gaming -> IShowSpeed
+          bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
+          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/L-qQf_iKkQ4AAAAC/ishowspeed-speed.gif")
         },
-        5: { // Fitness/Gym -> The Rock + Gym/Locker Room
-          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/1OcbvYyS13UAAAAd/the-rock-sus.gif"
+        5: { // Fitness -> The Rock
+          bg: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800",
+          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/1OcbvYyS13UAAAAC/the-rock-sus.gif")
         }
       };
 
@@ -123,13 +117,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             onClick={handlePlayToggle}
             className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
-            {/* BACKGROUND LAYER: style={{ color: 'transparent' }} hides any broken image icons permanently */}
             <img 
               src={videoData.bg} 
-              alt="" 
-              style={{ color: 'transparent' }}
+              alt="Environment" 
               className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity filter contrast-125 pointer-events-none" 
-              onError={(e) => e.currentTarget.style.visibility = 'hidden'}
             />
             
             <video 
@@ -144,18 +135,15 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* CELEBRITY GIF LAYER */}
-            <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none z-[2]">
+            {/* CELEBRITY GIF - Moved to the absolute center so it is the most important element. Removed onError hide so it is guaranteed to render. */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[2]">
               <img 
                 src={videoData.gif} 
-                alt="" 
-                style={{ color: 'transparent' }}
-                className="w-[200px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]" 
-                onError={(e) => e.currentTarget.style.visibility = 'hidden'}
+                alt="Celebrity Overlay" 
+                className="w-[220px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]" 
               />
             </div>
 
-            {/* DYNAMIC BRAND TEXT */}
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
               <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.1] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
@@ -172,7 +160,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           </div>
         </div>
 
-        {/* ACTION BAR */}
         <div className="flex w-[280px] sm:w-[320px] justify-between gap-3 mt-5">
           <button onClick={() => setIsMuted(!isMuted)} className="flex-1 bg-white/5 hover:bg-white/10 text-white/90 text-sm font-medium py-3 rounded-xl transition-all duration-300 border border-white/10 backdrop-blur-sm flex justify-center items-center gap-2">
             {isMuted ? (
