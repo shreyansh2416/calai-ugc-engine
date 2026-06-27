@@ -17,13 +17,13 @@ export async function POST(req: Request) {
     - DO NOT pitch your video generation unless asked.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
-    - Analyze the product. Output a blueprint for a highly relatable, clever meme ad.
+    - Analyze EXACTLY what the product does (e.g., Nike = buying expensive shoes, YouTube = distraction/videos, CalAI = dieting/macros).
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: Write it exactly like a casual TikTok caption. Use lowercase, conversational humor (e.g., "me acting like i know my macros so i just open ${brand}").
-    - Hook Rule 3: DO NOT use forced internet slang (no "rizz", "fr fr", "cooked"). Make it genuinely witty.
+    - Hook Rule 2: Write it exactly like a casual TikTok caption (lowercase).
+    - Hook Rule 3: The joke MUST be uniquely tailored to the product's actual purpose. DO NOT repeat the same jokes.
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
-    - gifSearchTerm: MUST BE A SPECIFIC CELEBRITY + ACTION (e.g., the-rock-smelling, shaq-eating, drake-typing, kevin-hart-staring). Replace spaces with hyphens.
-    - bgSearchTerm: MUST SEMANTICALLY MATCH THE GIF ACTION. (e.g., If action is eating -> modern-dining-room. If working -> modern-office. If working out -> luxury-gym). Replace spaces with hyphens.
+    - gifSearchTerm: MUST BE ONLY A CELEBRITY NAME (e.g., the-rock, kevin-hart, shaq, drake). Do not add actions. Replace spaces with hyphens.
+    - bgSearchTerm: A room or location that logically matches the product (e.g., luxury-gym for fitness, modern-kitchen for food, messy-bedroom for gaming). Replace spaces with hyphens.
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       "videoBlueprint": {
         "hook": "hyphenated-tiktok-caption-with-brand",
         "bgSearchTerm": "luxury-kitchen",
-        "gifSearchTerm": "the-rock-smelling"
+        "gifSearchTerm": "the-rock"
       }
     }`;
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.8, 
+          temperature: 0.9, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -59,9 +59,9 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `me-trying-to-justify-buying-from-${brand}`;
+        const hook = aiLogic.videoBlueprint?.hook || `me-using-${brand}`;
         const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "modern-living-room";
-        const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "the-rock-confused";
+        const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "the-rock";
 
         const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;

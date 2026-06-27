@@ -3,7 +3,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 export default function UGCPlayer({ videoState }: { videoState: any }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   
   const [isPlaying, setIsPlaying] = useState(false);
@@ -18,8 +17,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets..."
   });
-
-  const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
   const audios: Record<number, string> = {
     1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -46,7 +43,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const gifSearchTerm = urlObj.searchParams.get('g') || "the-rock";
 
       const hookText = rawHook.replace(/-/g, ' ');
-      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " high quality interior photography"; 
+      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " high quality photography"; 
       const cleanGifQuery = gifSearchTerm.replace(/-/g, ' ');
 
       const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true`;
@@ -60,20 +57,23 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         audio: randomAudio
       }));
 
-      // USING GIPHY STICKER API: This strictly returns true transparent cutouts.
-      const fetchUrl = `https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(cleanGifQuery)}&limit=5`;
+      // STRICT STICKER SEARCH (Guarantees transparent cutouts)
+      const fetchUrl = `https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(cleanGifQuery)}&limit=10`;
 
       fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
           if (data && data.data && data.data.length > 0) {
-            const randomIndex = Math.floor(Math.random() * data.data.length);
-            const stickerUrl = data.data[randomIndex].images.fixed_height.url;
-            // Route through proxy to prevent CDN Poisoning / Adblockers
+            const stickerUrl = data.data[0].images.fixed_height.url;
             setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent(stickerUrl)}` }));
+          } else {
+            // Unbreakable fallback if the API finds absolutely nothing for the query
+            setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent("https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif")}` }));
           }
         })
-        .catch(console.error);
+        .catch(() => {
+          setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent("https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif")}` }));
+        });
     }
   }, [videoState]);
 
@@ -82,12 +82,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   }, [isMuted]);
 
   const handlePlayToggle = () => {
-    if (!videoRef.current || !audioRef.current) return;
+    if (!audioRef.current) return;
     if (isPlaying) {
-      videoRef.current.pause();
       audioRef.current.pause();
     } else {
-      videoRef.current.play().catch(e => console.log(e));
       audioRef.current.play().catch(e => console.log(e));
     }
     setIsPlaying(!isPlaying);
@@ -106,7 +104,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         body, p, span, div, input, button {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
         }
-        /* Custom Text Stroke for TikTok Style */
         .tiktok-text {
           text-shadow: 
             2px 2px 0 #000, 
@@ -124,7 +121,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             onClick={handlePlayToggle}
             className={`relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] rounded-[18px] overflow-hidden cursor-pointer select-none ${bgLoaded ? 'bg-[#111]' : 'bg-zinc-800 animate-pulse'}`}
           >
-            {/* BACKGROUND */}
+            {/* 1. SOLE BACKGROUND LAYER (Video removed) */}
             <img 
               src={videoData.bg} 
               alt="" 
@@ -132,35 +129,26 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
               className={`absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none transition-opacity duration-500 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
             />
             
-            <video 
-              ref={videoRef} 
-              src={baseVideo} 
-              loop 
-              muted 
-              playsInline 
-              crossOrigin="anonymous"
-              className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none z-[1] mix-blend-screen" 
-            />
-            
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* TIKTOK TEXT (Positioned top-1/5, lowercase, thick black border) */}
+            {/* 2. TIKTOK TEXT */}
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
               </h3>
             </div>
 
-            {/* TRANSPARENT CUTOUT (Anchored to the absolute bottom, massive width) */}
+            {/* 3. TRANSPARENT CELEBRITY CUTOUT */}
             <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
               <img 
                 src={videoData.gif} 
-                alt="" 
+                alt="Sticker" 
                 className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" 
                 onError={(e) => { e.currentTarget.style.display = 'none'; }} 
               />
             </div>
 
+            {/* 4. PLAY BUTTON */}
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity z-[30]">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)] transform transition group-hover:scale-110">
