@@ -12,20 +12,26 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
-    gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/L-qQf_iKkQ4AAAAC/ishowspeed-speed.gif"),
+    bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
+    gif: "https://media1.tenor.com/m/L-qQf_iKkQ4AAAAd/ishowspeed-speed.gif",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "LITERAL CHEAT CODE FOR AUTOMATION"
+    text: "POV: AUTOMATING VIDEO CREATION"
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
+  // 10 UNIQUE AUDIO TRACKS (Drastically reduces repeating music)
   const audios: Record<number, string> = {
     1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     2: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
     3: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
     4: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    5: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    5: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    6: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+    7: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",
+    8: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3",
+    9: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",
+    10: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
   };
 
   useEffect(() => {
@@ -40,30 +46,30 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const themeId = parseInt(urlObj.searchParams.get('t') || "4");
       const audioId = parseInt(urlObj.searchParams.get('a') || "1");
       
-      const rawHook = urlObj.searchParams.get('h') || `BRO-THIS-IS-INSANE`;
-      const hookText = rawHook.replace(/-/g, ' ');
+      const rawHook = urlObj.searchParams.get('h') || `POV:-USING-${brandName}`;
+      const hookText = rawHook.replace(/-/g, ' '); // Replaces hyphens back to spaces for display
 
-      // ALL GIFS ARE NOW PROXIED. Adblockers will see them as local files and allow them through.
+      // STRICT SEMANTIC MAPPING: Background perfectly matches the Celebrity's activity
       const themes: Record<number, any> = {
-        1: { // Food -> Shaq Eating
-          bg: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800",
-          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/qLhVn0B_n_kAAAAC/shaq-shaquille-o-neal.gif")
+        1: { // Food -> Shaq Eating + Restaurant
+          bg: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media1.tenor.com/m/qLhVn0B_n_kAAAAd/shaq-shaquille-o-neal.gif" 
         },
-        2: { // Study -> Drake Laptop
-          bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800",
-          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/mOPEt9lB5aUAAAAC/drake-computer.gif")
+        2: { // Study/Work -> Drake Laptop + Library/Office
+          bg: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media1.tenor.com/m/8a6Q4kO7pBwAAAAd/drake-computer.gif"
         },
-        3: { // Home -> Kevin Hart
-          bg: "https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=800",
-          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/3Gv2x_BovI4AAAAC/math-calculate.gif")
+        3: { // Home/Lifestyle -> Kevin Hart Confused + Living Room
+          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media1.tenor.com/m/3Gv2x_BovI4AAAAd/math-calculate.gif"
         },
-        4: { // Gaming -> IShowSpeed
-          bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
-          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/L-qQf_iKkQ4AAAAC/ishowspeed-speed.gif")
+        4: { // Gaming/Tech -> IShowSpeed + RGB Gaming Room
+          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media1.tenor.com/m/L-qQf_iKkQ4AAAAd/ishowspeed-speed.gif"
         },
-        5: { // Fitness -> The Rock
-          bg: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800",
-          gif: "/api/proxy?url=" + encodeURIComponent("https://c.tenor.com/1OcbvYyS13UAAAAC/the-rock-sus.gif")
+        5: { // Fitness -> The Rock + Gym
+          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media1.tenor.com/m/1OcbvYyS13UAAAAd/the-rock-sus.gif"
         }
       };
 
@@ -117,10 +123,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             onClick={handlePlayToggle}
             className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
-            <img 
-              src={videoData.bg} 
-              alt="Environment" 
-              className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity filter contrast-125 pointer-events-none" 
+            {/* BACKGROUND LAYER: Rendered via CSS to eliminate broken icon risk */}
+            <div 
+              className="absolute inset-0 w-full h-full opacity-50 mix-blend-luminosity filter contrast-125 bg-cover bg-center pointer-events-none"
+              style={{ backgroundImage: `url('${videoData.bg}')` }}
             />
             
             <video 
@@ -135,15 +141,13 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* CELEBRITY GIF - Moved to the absolute center so it is the most important element. Removed onError hide so it is guaranteed to render. */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[2]">
-              <img 
-                src={videoData.gif} 
-                alt="Celebrity Overlay" 
-                className="w-[220px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]" 
-              />
-            </div>
+            {/* CELEBRITY GIF LAYER: Rendered via CSS to eliminate broken icon risk */}
+            <div 
+              className="absolute inset-x-0 bottom-24 h-[220px] bg-bottom bg-no-repeat bg-contain z-[2] drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)] pointer-events-none"
+              style={{ backgroundImage: `url('${videoData.gif}')` }}
+            />
 
+            {/* DYNAMIC TIKTOK HOOK TEXT */}
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
               <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.1] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
@@ -160,18 +164,13 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           </div>
         </div>
 
+        {/* ACTION BAR */}
         <div className="flex w-[280px] sm:w-[320px] justify-between gap-3 mt-5">
           <button onClick={() => setIsMuted(!isMuted)} className="flex-1 bg-white/5 hover:bg-white/10 text-white/90 text-sm font-medium py-3 rounded-xl transition-all duration-300 border border-white/10 backdrop-blur-sm flex justify-center items-center gap-2">
-            {isMuted ? (
-               <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
-            ) : (
-               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-            )}
             {isMuted ? "Unmute" : "Mute"}
           </button>
 
           <button onClick={handleShare} className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-semibold py-3 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.4)] flex justify-center items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
             {shareText}
           </button>
         </div>
