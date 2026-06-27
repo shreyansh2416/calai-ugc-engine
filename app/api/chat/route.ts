@@ -12,15 +12,18 @@ export async function POST(req: Request) {
     if (match) {
       const rawDomain = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
       const brand = rawDomain.toUpperCase();
-      const themeId = Math.floor(Math.random() * 5) + 1;
-      let hook = `BRO-THIS-APP-IS-LITERALLY-INSANE`;
+      
+      // DECOUPLED RANDOMIZATION: All elements are completely independent now
+      const bgId = Math.floor(Math.random() * 5);
+      const gifId = Math.floor(Math.random() * 5);
+      const audioId = Math.floor(Math.random() * 5);
+      
+      let hook = `LITERAL-CHEAT-CODE-FOR-${brand}-FR`;
 
-      // Randomize the persona to guarantee drastically different texts every time
       const personas = [
-        "a dramatic, toxic TikToker who is overly obsessed with the product",
-        "a hustle-culture tech bro who thinks the product is a life hack",
-        "a broke college student who just discovered the product",
-        "an aesthetic lifestyle vlogger who thinks the product is a vibe"
+        "a toxic TikToker who overhypes everything",
+        "a hustle-culture tech bro dropping a life hack",
+        "an aesthetic vlogger giving secret advice"
       ];
       const selectedPersona = personas[Math.floor(Math.random() * personas.length)];
 
@@ -30,15 +33,15 @@ export async function POST(req: Request) {
           headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
-            temperature: 1.2, // Forces the AI to be highly creative and varied
+            temperature: 1.3, // Maximum creativity
             messages: [{ 
               role: 'system', 
-              content: `You are ${selectedPersona}. Analyze this product context: "${lastMsg}".
+              content: `You are ${selectedPersona}. Analyze this product: "${lastMsg}".
               Write ONE highly relatable, super trendy 6-10 word text hook about using this product. 
               RULES:
-              - BE EXTREMELY FUNNY AND CLEVER.
-              - Vary your words. Do NOT always use "cheat code" or "gatekeeping".
-              - Replace EVERY SINGLE SPACE with a hyphen (-). Example: My-toxic-trait-is-buying-this
+              - DO NOT START WITH "I" OR USE THE WORD "I".
+              - Vary your words. Make it sound like a viral Gen-Z TikTok meme.
+              - Replace EVERY SINGLE SPACE with a hyphen (-). Example: Bro-this-app-is-literally-insane
               - NO punctuation or emojis.` 
             }]
           })
@@ -49,8 +52,8 @@ export async function POST(req: Request) {
         }
       } catch (e) { console.error("Groq generation failed."); }
 
-      // Hyphens allow the browser to line-break the text, fixing your chatbox overflow!
-      const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&h=${hook}`;
+      // Ultra-short URL with decoupled parameters
+      const url = `https://ugc-engine.app/render/${brand}?b=${bgId}&g=${gifId}&a=${audioId}&h=${hook}`;
       responseText = `I've analyzed the site and organized the creative assets. Check out the generated clip here:\n${url}`;
     } 
     else {
