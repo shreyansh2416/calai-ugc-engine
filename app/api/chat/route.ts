@@ -75,6 +75,9 @@ export async function POST(req: Request) {
       }
     }
 
+    // ==========================================
+    // ROBUST LOCAL STREAMER
+    // ==========================================
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
