@@ -9,33 +9,31 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [shareText, setShareText] = useState("Share Link");
+  const [bgLoaded, setBgLoaded] = useState(false);
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
-    bg: "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800",
-    gif: "/api/proxy?url=" + encodeURIComponent("https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"), 
+    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
+    gif: "https://c.tenor.com/mOPEt9lB5aUAAAAC/drake-computer.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets..."
   });
 
-  // Helper to ensure adblockers don't kill the GIFs
-  const withProxy = (url: string) => `/api/proxy?url=${encodeURIComponent(url)}`;
-
-  // BULLETPROOF ASSET DICTIONARY
+  // RAW CDN DICTIONARY: Zero proxies. Zero Giphy CDN poisoning. 100% direct raw files.
   const assetLibrary = {
     backgrounds: {
-      gym: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
-      kitchen: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-      bedroom: "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800",
-      office: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
-      store: "https://images.pexels.com/photos/1036857/pexels-photo-1036857.jpeg?auto=compress&cs=tinysrgb&w=800"
+      gym: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
+      kitchen: "https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80",
+      bedroom: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
+      office: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+      store: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80"
     },
     stickers: {
-      drake: withProxy("https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"),
-      rock: withProxy("https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif"),
-      shaq: withProxy("https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif"),
-      hart: withProxy("https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif"),
-      spongebob: withProxy("https://media.tenor.com/8m4C0X1PqQoAAAAi/spongebob-reading.gif")
+      drake: "https://c.tenor.com/mOPEt9lB5aUAAAAC/drake-computer.gif",
+      rock: "https://c.tenor.com/1OcbvYyS13UAAAAC/the-rock-sus.gif",
+      shaq: "https://c.tenor.com/qLhVn0B_n_kAAAAC/shaq-shaquille-o-neal.gif",
+      hart: "https://c.tenor.com/3Gv2x_BovI4AAAAC/math-calculate.gif",
+      spongebob: "https://c.tenor.com/8m4C0X1PqQoAAAAC/spongebob-reading.gif"
     },
     audio: [
       "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -56,6 +54,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
     if (rawUrl && rawUrl.includes('/render/')) {
       hasInitialized.current = true;
+      setBgLoaded(false);
 
       const urlObj = new URL(rawUrl);
       const brandName = urlObj.pathname.split('/').pop()?.toLowerCase() || "the app";
@@ -66,7 +65,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const bgKey = (urlObj.searchParams.get('b') || "bedroom") as keyof typeof assetLibrary.backgrounds;
       const gifKey = (urlObj.searchParams.get('g') || "drake") as keyof typeof assetLibrary.stickers;
 
-      // IRONCLAD FALLBACKS: If the AI hallucinates a key, it defaults to bedroom/drake instead of crashing
       const selectedBg = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.bedroom;
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.drake;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
@@ -123,31 +121,40 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           
           <div 
             onClick={handlePlayToggle}
-            className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
+            // Added bg-zinc-900 so if Unsplash is slow, you get a clean dark grey box instead of pure black
+            className={`relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-zinc-900 rounded-[18px] overflow-hidden cursor-pointer select-none ${bgLoaded ? '' : 'animate-pulse'}`}
           >
-            {/* RAW IMAGE RENDER: No CSS hiding tricks. It will just load and show. */}
+            {/* BACKGROUND LAYER */}
             <img 
               src={videoData.bg} 
-              alt="Environment" 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" 
+              alt="" 
+              onLoad={() => setBgLoaded(true)}
+              // Failsafe: If Unsplash blocks the IP, we force bgLoaded to true so the text still appears over the dark grey box
+              onError={(e) => { e.currentTarget.style.display = 'none'; setBgLoaded(true); }}
+              className={`absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none transition-opacity duration-500 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
             />
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
+            {/* TEXT LAYER */}
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
               </h3>
             </div>
 
+            {/* STICKER LAYER */}
             <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
               <img 
                 src={videoData.gif} 
-                alt="Celebrity" 
+                alt="" 
+                // IRONCLAD FAILSAFE: If the image fails to load, we completely hide it. No more broken "Celebrity" alt-text icons. Ever.
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" 
               />
             </div>
 
+            {/* PLAY BUTTON */}
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity z-[30]">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)] transform transition group-hover:scale-110">
