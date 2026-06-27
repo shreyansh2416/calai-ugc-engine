@@ -12,15 +12,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-    gif: "https://media1.tenor.com/m/L-qQf_iKkQ4AAAAd/ishowspeed-speed.gif",
+    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
+    gif: "https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "POV: AUTOMATING VIDEO CREATION"
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
-  // 10 UNIQUE AUDIO TRACKS (Drastically reduces repeating music)
   const audios: Record<number, string> = {
     1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     2: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
@@ -47,29 +46,28 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const audioId = parseInt(urlObj.searchParams.get('a') || "1");
       
       const rawHook = urlObj.searchParams.get('h') || `POV:-USING-${brandName}`;
-      const hookText = rawHook.replace(/-/g, ' '); // Replaces hyphens back to spaces for display
+      const hookText = rawHook.replace(/-/g, ' ');
 
-      // STRICT SEMANTIC MAPPING: Background perfectly matches the Celebrity's activity
       const themes: Record<number, any> = {
         1: { // Food -> Shaq Eating + Restaurant
           bg: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/qLhVn0B_n_kAAAAd/shaq-shaquille-o-neal.gif" 
+          gif: "https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif" 
         },
         2: { // Study/Work -> Drake Laptop + Library/Office
           bg: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/8a6Q4kO7pBwAAAAd/drake-computer.gif"
+          gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"
         },
         3: { // Home/Lifestyle -> Kevin Hart Confused + Living Room
           bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/3Gv2x_BovI4AAAAd/math-calculate.gif"
+          gif: "https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif"
         },
         4: { // Gaming/Tech -> IShowSpeed + RGB Gaming Room
           bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/L-qQf_iKkQ4AAAAd/ishowspeed-speed.gif"
+          gif: "https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif"
         },
         5: { // Fitness -> The Rock + Gym
           bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: "https://media1.tenor.com/m/1OcbvYyS13UAAAAd/the-rock-sus.gif"
+          gif: "https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif"
         }
       };
 
@@ -109,26 +107,20 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body, p, span, div, input, button {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-        }
-      `}} />
-
       <div className="w-full flex flex-col items-center my-8" style={{ isolation: 'isolate' }}>
-        
         <div className="relative p-[2px] rounded-[20px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_30px_rgba(139,92,246,0.2)] group hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] transition-all duration-500">
+          
           <div 
             onClick={handlePlayToggle}
             className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
-            {/* BACKGROUND LAYER: Rendered via CSS to eliminate broken icon risk */}
+            {/* 1. BACKGROUND LAYER (Rendered as CSS) */}
             <div 
               className="absolute inset-0 w-full h-full opacity-50 mix-blend-luminosity filter contrast-125 bg-cover bg-center pointer-events-none"
               style={{ backgroundImage: `url('${videoData.bg}')` }}
             />
             
+            {/* 2. BASE VIDEO */}
             <video 
               ref={videoRef} 
               src={baseVideo} 
@@ -141,19 +133,20 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* CELEBRITY GIF LAYER: Rendered via CSS to eliminate broken icon risk */}
+            {/* 3. CELEBRITY GIF LAYER (Rendered as CSS Background to guarantee no broken icons) */}
             <div 
               className="absolute inset-x-0 bottom-24 h-[220px] bg-bottom bg-no-repeat bg-contain z-[2] drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)] pointer-events-none"
               style={{ backgroundImage: `url('${videoData.gif}')` }}
             />
 
-            {/* DYNAMIC TIKTOK HOOK TEXT */}
+            {/* 4. DYNAMIC HOOK TEXT */}
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
               <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.1] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
               </h3>
             </div>
 
+            {/* 5. PLAY BUTTON OVERLAY */}
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity z-[4]">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)] transform transition group-hover:scale-110">
@@ -164,7 +157,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           </div>
         </div>
 
-        {/* ACTION BAR */}
         <div className="flex w-[280px] sm:w-[320px] justify-between gap-3 mt-5">
           <button onClick={() => setIsMuted(!isMuted)} className="flex-1 bg-white/5 hover:bg-white/10 text-white/90 text-sm font-medium py-3 rounded-xl transition-all duration-300 border border-white/10 backdrop-blur-sm flex justify-center items-center gap-2">
             {isMuted ? "Unmute" : "Mute"}

@@ -5,7 +5,6 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    // The exact system prompt based on the recruiter's evaluation criteria
     const systemPrompt = `You are the AI director for a viral UGC (User Generated Content) video engine. Your job is twofold:
 
     1. CONVERSATION: Handle greetings ("hi") and capabilities questions ("what can you do?") naturally, warmly, and concisely. Remind users you turn product URLs into hilarious short-form ads.
@@ -36,8 +35,8 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.0,
-          response_format: { type: "json_object" }, // Forces strict JSON output
+          temperature: 1.1,
+          response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
             ...messages.map((m: any) => ({ role: m.role, content: m.content })).slice(-4)
@@ -51,14 +50,13 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        // AI decided it's a video. Extract the domain name from the user's message.
         const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
         const match = lastMsg.match(urlRegex);
         const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THIS_PRODUCT";
         
         const themeId = aiLogic.videoBlueprint.themeId || Math.floor(Math.random() * 5) + 1;
         const hook = aiLogic.videoBlueprint.hook || `POV:-WHEN-YOU-USE-${brand}`;
-        const audioId = Math.floor(Math.random() * 10) + 1; // Random audio 1-10
+        const audioId = Math.floor(Math.random() * 10) + 1;
 
         const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&a=${audioId}&h=${hook}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
@@ -68,7 +66,6 @@ export async function POST(req: Request) {
       responseText = "I'm having a quick connection hiccup, but I'm ready to generate videos!";
     }
 
-    // Smooth Typing Streamer
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
