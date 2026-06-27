@@ -9,31 +9,33 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [shareText, setShareText] = useState("Share Link");
-  const [bgLoaded, setBgLoaded] = useState(false);
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
-    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
-    gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif", 
+    bg: "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800",
+    gif: "/api/proxy?url=" + encodeURIComponent("https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"), 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets..."
   });
 
-  // CURATED ASSET DICTIONARY (Guarantees instant load, 0 broken links, 100% transparency)
+  // Helper to ensure adblockers don't kill the GIFs
+  const withProxy = (url: string) => `/api/proxy?url=${encodeURIComponent(url)}`;
+
+  // BULLETPROOF ASSET DICTIONARY
   const assetLibrary = {
     backgrounds: {
-      gym: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
-      kitchen: "https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80",
-      bedroom: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
-      office: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
-      store: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80"
+      gym: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
+      kitchen: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
+      bedroom: "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800",
+      office: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
+      store: "https://images.pexels.com/photos/1036857/pexels-photo-1036857.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     stickers: {
-      drake: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif",
-      rock: "https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif",
-      shaq: "https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif",
-      hart: "https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif",
-      spongebob: "https://media.tenor.com/8m4C0X1PqQoAAAAi/spongebob-reading.gif"
+      drake: withProxy("https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"),
+      rock: withProxy("https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif"),
+      shaq: withProxy("https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif"),
+      hart: withProxy("https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif"),
+      spongebob: withProxy("https://media.tenor.com/8m4C0X1PqQoAAAAi/spongebob-reading.gif")
     },
     audio: [
       "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -54,7 +56,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
     if (rawUrl && rawUrl.includes('/render/')) {
       hasInitialized.current = true;
-      setBgLoaded(false);
 
       const urlObj = new URL(rawUrl);
       const brandName = urlObj.pathname.split('/').pop()?.toLowerCase() || "the app";
@@ -65,7 +66,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const bgKey = (urlObj.searchParams.get('b') || "bedroom") as keyof typeof assetLibrary.backgrounds;
       const gifKey = (urlObj.searchParams.get('g') || "drake") as keyof typeof assetLibrary.stickers;
 
-      // Instantly pull from the pre-existing library
+      // IRONCLAD FALLBACKS: If the AI hallucinates a key, it defaults to bedroom/drake instead of crashing
       const selectedBg = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.bedroom;
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.drake;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
@@ -122,13 +123,13 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           
           <div 
             onClick={handlePlayToggle}
-            className={`relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none ${bgLoaded ? '' : 'animate-pulse'}`}
+            className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
+            {/* RAW IMAGE RENDER: No CSS hiding tricks. It will just load and show. */}
             <img 
               src={videoData.bg} 
               alt="Environment" 
-              onLoad={() => setBgLoaded(true)}
-              className={`absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none transition-opacity duration-500 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
+              className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" 
             />
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />

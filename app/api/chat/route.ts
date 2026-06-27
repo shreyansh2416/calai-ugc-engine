@@ -18,10 +18,10 @@ export async function POST(req: Request) {
     - Analyze the product's actual use case (e.g., Nike = buying expensive shoes, CalAI = tracking macros/diet, YouTube = getting distracted/binging).
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
     - Hook Rule 2: Use sensible, relatable, self-deprecating humor. (Examples: "my bank account watching me open nike.com at 2am", "me acting like i know my macros so i just let calai handle it", "telling myself i'll only watch one video on youtube").
-    - Hook Rule 3: ABSOLUTELY NO CRINGE SLANG. Do not use "rizz", "fr fr", "cooked", or "nemesis". Make it sound like a normal, funny person.
+    - Hook Rule 3: ABSOLUTELY NO CRINGE SLANG. Do not use "rizz", "fr fr", "cooked", or "nemesis". 
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
-    - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob".
-    - bgCategory: CHOOSE EXACTLY ONE that matches the product: "gym", "kitchen", "bedroom", "office", "store".
+    - gifCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS. DO NOT INVENT YOUR OWN: "drake", "rock", "shaq", "hart", "spongebob".
+    - bgCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS THAT MATCHES THE PRODUCT. DO NOT INVENT YOUR OWN: "gym", "kitchen", "bedroom", "office", "store".
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.8, 
+          temperature: 0.5, // Lowered temperature forces the AI to obey the exact categories
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
