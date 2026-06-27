@@ -10,14 +10,14 @@ export async function POST(req: Request) {
     let responseText = "";
 
     // ==========================================
-    // ROUTE A: UGC GENERATION (Flawless Hooks)
+    // ROUTE A: UGC GENERATION
     // ==========================================
     if (match) {
       const rawDomain = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
       const brand = rawDomain.toUpperCase();
       
       const themeId = Math.floor(Math.random() * 5) + 1;
-      let hook = `POV YOU FINALLY STOPPED GATEKEEPING ${brand}`;
+      let hook = `LITERAL CHEAT CODE FOR USING ${brand} 💀`;
 
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -29,10 +29,11 @@ export async function POST(req: Request) {
               role: 'system', 
               content: `You are a witty, unhinged Gen-Z marketing director. Write a clever, highly relatable 8 to 12 word TikTok text hook about this product: ${brand}. 
               CRITICAL RULES:
-              - DO NOT mention any celebrities.
-              - DO NOT output wrong facts.
-              - DO NOT use quotes, emojis, or punctuation.
-              - Keep it strictly about the user's POV of using the product.` 
+              - NEVER start the sentence with "I".
+              - Vary your sentence structures wildly.
+              - Use modern internet slang (e.g., "Bro", "No way", "Cheat code", "Gatekeeping").
+              - DO NOT mention any celebrities or output wrong facts.
+              - DO NOT use quotes, emojis, or punctuation.` 
             }]
           })
         });
@@ -43,8 +44,6 @@ export async function POST(req: Request) {
       } catch (e) { console.error("Groq text generation failed, using fallback."); }
 
       const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&h=${encodeURIComponent(hook)}`;
-      
-      // FIX: Markdown link formatting completely stops text box overflow
       responseText = `I've analyzed the site and organized a custom layout for you. \n\n👉 [Click here to view your generated UGC clip](${url})`;
     } 
     
@@ -59,21 +58,23 @@ export async function POST(req: Request) {
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [
-              { role: 'system', content: "You are a witty UGC video AI. Answer concisely and naturally. If asked what you do, say you generate UGC marketing videos from URLs." },
-              ...messages.map((m: any) => ({ role: m.role, content: m.content })).slice(-3)
+              { 
+                role: 'system', 
+                content: `You are a helpful, witty AI assistant. 
+                Answer general questions naturally and accurately like ChatGPT. 
+                CRITICAL RULE: DO NOT mention that you generate UGC videos UNLESS the user explicitly asks what you do.` 
+              },
+              ...messages.map((m: any) => ({ role: m.role, content: m.content })).slice(-4)
             ]
           })
         });
         const data = await groqRes.json();
         responseText = data.choices[0].message.content;
       } catch (e) {
-        responseText = "I'm an AI specialized in UGC video generation! Drop a product link, and I'll create a marketing video for it.";
+        responseText = "I'm having a minor connection hiccup, but I'm here and ready to chat or generate videos!";
       }
     }
 
-    // ==========================================
-    // LOCAL STREAMER
-    // ==========================================
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {

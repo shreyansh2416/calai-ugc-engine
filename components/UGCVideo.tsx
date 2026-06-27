@@ -9,13 +9,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [copyText, setCopyText] = useState("Copy");
+  const [downloadText, setDownloadText] = useState("Download");
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800",
-    gif: "https://media.tenor.com/x8v1oNUOmg4AAAAi/drake-computer.gif",
+    bg: "https://images.pexels.com/photos/6954162/pexels-photo-6954162.jpeg?auto=compress&cs=tinysrgb&w=800",
+    gif: "https://media3.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "POV: AUTOMATING VIDEO CREATION"
+    text: "LITERAL CHEAT CODE FOR AUTOMATION"
   });
 
   const baseVideo = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
@@ -29,33 +30,33 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const urlObj = new URL(rawUrl);
       const brandName = rawUrl.split('/').pop()?.split('?')[0] || "THE APP";
       const themeId = parseInt(urlObj.searchParams.get('t') || "1");
-      const hookText = urlObj.searchParams.get('h') || `POV USING ${brandName} FOR THE FIRST TIME`;
+      const hookText = urlObj.searchParams.get('h') || `LITERAL CHEAT CODE FOR USING ${brandName}`;
 
-      // 5 RELIABLE THEMES: Unsplash (BG) + Tenor (Transparent Sticker) + SoundHelix (Audio)
+      // 5 ROCK-SOLID THEMES (Using raw Giphy CDN links to bypass strict CORS shields)
       const themes: Record<number, any> = {
-        1: { // Drake (Smug)
-          bg: "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800",
-          gif: "https://media.tenor.com/x8v1oNUOmg4AAAAi/drake-computer.gif",
+        1: { // Drake
+          bg: "https://images.pexels.com/photos/6954162/pexels-photo-6954162.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media3.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
         },
-        2: { // The Rock (Suspicious)
-          bg: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800",
-          gif: "https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif",
+        2: { // The Rock
+          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media3.giphy.com/media/1OcbvYyS13UAAAAi/giphy.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
         },
-        3: { // IShowSpeed (Rage)
-          bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
-          gif: "https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif",
+        3: { // IShowSpeed
+          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media3.giphy.com/media/L-qQf_iKkQ4AAAAi/giphy.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
         },
-        4: { // Shaq (Vibing)
-          bg: "https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=800",
-          gif: "https://media.tenor.com/rN5x6vBv2sQAAAAi/shaq-wiggle.gif",
+        4: { // Shaq
+          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media3.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
         },
-        5: { // Math Lady (Confused)
-          bg: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=800",
-          gif: "https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif",
+        5: { // Kevin Hart
+          bg: "https://images.pexels.com/photos/373076/pexels-photo-373076.jpeg?auto=compress&cs=tinysrgb&w=800",
+          gif: "https://media3.giphy.com/media/3o7TKr3nzbh5WgCFxe/giphy.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
         }
       };
@@ -87,6 +88,31 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     setTimeout(() => setCopyText("Copy"), 2000);
   };
 
+  // SMART DOWNLOADER: Attempts a direct blob download. If Google's CORS blocks it, gracefully opens in a new tab.
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDownloadText("Wait...");
+    try {
+      const response = await fetch(baseVideo);
+      if (!response.ok) throw new Error("CORS or Network Block");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `UGC_${videoData.brand}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      setDownloadText("Done!");
+    } catch (error) {
+      console.warn("Direct download blocked by Cloud Storage CORS. Opening securely instead.");
+      window.open(baseVideo, '_blank');
+      setDownloadText("Opened");
+    }
+    setTimeout(() => setDownloadText("Download"), 2000);
+  };
+
   return (
     <div className="w-full flex flex-col items-center my-6" style={{ isolation: 'isolate' }}>
       
@@ -95,16 +121,28 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         onClick={handlePlayToggle}
         className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
       >
-        <img src={videoData.bg} alt="Environment" className="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none" />
+        {/* Added onError to hide the broken icon if an image ever gets blocked by browser shields */}
+        <img 
+          src={videoData.bg} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none" 
+          onError={(e) => e.currentTarget.style.display = 'none'} 
+        />
+        
         <video ref={videoRef} src={baseVideo} loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none z-[1]" />
         <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-[2] pb-20">
-          <img src={videoData.gif} alt="Celebrity Layer" className="w-[190px] h-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,1)]" />
+          <img 
+            src={videoData.gif} 
+            alt="Meme" 
+            className="w-[190px] h-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,1)]" 
+            onError={(e) => e.currentTarget.style.display = 'none'}
+          />
         </div>
 
         <div className="absolute top-12 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
-          <h3 className="text-white text-[22px] leading-[1.15] font-black uppercase tracking-wide drop-shadow-[0_6px_10px_rgba(0,0,0,1)] text-stroke">
+          <h3 className="text-white text-[20px] sm:text-[22px] leading-[1.15] font-black uppercase tracking-wide drop-shadow-[0_6px_10px_rgba(0,0,0,1)] text-stroke">
             {videoData.text}
           </h3>
         </div>
@@ -134,11 +172,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           {copyText}
         </button>
         
-        {/* FIX: Bypasses CORS by opening securely in a new tab instead of forcing a direct download */}
-        <a href={baseVideo} target="_blank" rel="noopener noreferrer" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold py-3 rounded-xl transition shadow-lg border border-blue-500 flex justify-center items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-          Open
-        </a>
+        <button onClick={handleDownload} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold py-3 rounded-xl transition shadow-lg border border-blue-500 flex justify-center items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          {downloadText}
+        </button>
       </div>
 
     </div>
