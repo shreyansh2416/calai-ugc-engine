@@ -5,15 +5,17 @@ import React, { useRef, useState, useEffect } from 'react';
 export default function UGCPlayer({ videoState }: { videoState: any }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   
+  // State Locks to prevent re-renders wiping out old videos
+  const hasInitialized = useRef(false);
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [shareText, setShareText] = useState("Share Link");
-  const [bgLoaded, setBgLoaded] = useState(false);
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
     bg: "https://image.pollinations.ai/prompt/modern%20living%20room?width=800&height=1200&nologo=true",
-    gif: "/api/proxy?url=" + encodeURIComponent("https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif"), 
+    gif: "https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets..."
   });
@@ -28,12 +30,15 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   };
 
   useEffect(() => {
+    // PREVENTS BUG: If this video component already loaded its specific data, do not let React reset it!
+    if (hasInitialized.current) return;
+
     let rawUrl = "";
     if (typeof videoState === 'string' && videoState.includes('http')) rawUrl = videoState;
     else if (videoState && typeof videoState.url === 'string') rawUrl = videoState.url;
 
     if (rawUrl && rawUrl.includes('/render/')) {
-      setBgLoaded(false);
+      hasInitialized.current = true; // Lock the component state
 
       const urlObj = new URL(rawUrl);
       const brandName = urlObj.pathname.split('/').pop()?.toLowerCase() || "the app";
@@ -43,10 +48,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const gifSearchTerm = urlObj.searchParams.get('g') || "the-rock";
 
       const hookText = rawHook.replace(/-/g, ' ');
-      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " high quality photography"; 
-      const cleanGifQuery = gifSearchTerm.replace(/-/g, ' ');
-
-      const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true`;
+      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " photorealistic 4k interior"; 
+      
+      // Seed ensures Pollinations caches the image so it loads instantly next time
+      const seed = Math.floor(Math.random() * 100000);
+      const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true&seed=${seed}`;
       const randomAudio = audios[Math.floor(Math.random() * 6) + 1];
 
       setVideoData(prev => ({ 
@@ -57,23 +63,19 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         audio: randomAudio
       }));
 
-      // STRICT STICKER SEARCH (Guarantees transparent cutouts)
-      const fetchUrl = `https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(cleanGifQuery)}&limit=10`;
+      // DIRECT GIPHY STICKER API: Bypasses the proxy to prevent Vercel IP blocking. Exclusively returns transparent cutouts.
+      const fetchUrl = `https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(gifSearchTerm)}&limit=10`;
 
       fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
           if (data && data.data && data.data.length > 0) {
-            const stickerUrl = data.data[0].images.fixed_height.url;
-            setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent(stickerUrl)}` }));
-          } else {
-            // Unbreakable fallback if the API finds absolutely nothing for the query
-            setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent("https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif")}` }));
+            const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
+            const stickerUrl = data.data[randomIndex].images.fixed_height.url;
+            setVideoData(prev => ({ ...prev, gif: stickerUrl }));
           }
         })
-        .catch(() => {
-          setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent("https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif")}` }));
-        });
+        .catch(console.error);
     }
   }, [videoState]);
 
@@ -119,36 +121,34 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           
           <div 
             onClick={handlePlayToggle}
-            className={`relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] rounded-[18px] overflow-hidden cursor-pointer select-none ${bgLoaded ? 'bg-[#111]' : 'bg-zinc-800 animate-pulse'}`}
+            className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
-            {/* 1. SOLE BACKGROUND LAYER (Video removed) */}
+            {/* ONLY BACKGROUND LAYER. <video> tag is completely deleted. */}
             <img 
               src={videoData.bg} 
-              alt="" 
-              onLoad={() => setBgLoaded(true)}
-              className={`absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none transition-opacity duration-500 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
+              alt="Environment" 
+              className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none" 
             />
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* 2. TIKTOK TEXT */}
+            {/* TIKTOK TEXT */}
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
               </h3>
             </div>
 
-            {/* 3. TRANSPARENT CELEBRITY CUTOUT */}
+            {/* TRANSPARENT GIPHY STICKER */}
             <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
               <img 
                 src={videoData.gif} 
-                alt="Sticker" 
+                alt="Celebrity" 
                 className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" 
-                onError={(e) => { e.currentTarget.style.display = 'none'; }} 
               />
             </div>
 
-            {/* 4. PLAY BUTTON */}
+            {/* PLAY BUTTON OVERLAY */}
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity z-[30]">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)] transform transition group-hover:scale-110">
