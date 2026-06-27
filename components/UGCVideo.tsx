@@ -13,6 +13,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [videoData, setVideoData] = useState({
     brand: "the app",
     bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    bgCategory: "office", // Saved so the fallback knows what to search for
     gif: "/stickers/elon.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets...",
@@ -80,19 +81,19 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const bgKey = (urlObj.searchParams.get('b') || "office") as keyof typeof assetLibrary.backgrounds;
       const gifKey = (urlObj.searchParams.get('g') || "elon") as keyof typeof assetLibrary.stickers;
 
-      // Because the component re-runs on every new videoState, this randomizer will properly execute every time!
       const bgArray = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.office;
       const selectedBg = bgArray[Math.floor(Math.random() * bgArray.length)];
       
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.elon;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
 
-      setBgFailed(false); // Reset fail state on new video
+      setBgFailed(false); // Reset fail state on new video load
 
       setVideoData({ 
         brand: brandName, 
         text: hookText.toLowerCase(), 
         bg: selectedBg,
+        bgCategory: bgKey,
         gif: selectedGif,
         audio: randomAudio,
         rawUrl: rawUrl 
@@ -116,6 +117,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     setTimeout(() => setCopyText("Copy Link"), 2000);
   };
 
+  // AUTO-HEALING FUNCTION: If Unsplash fails, grab a Flickr image of the exact same category
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    if (!bgFailed) {
+      setBgFailed(true);
+      e.currentTarget.src = `https://loremflickr.com/800/1200/${videoData.bgCategory}?random=${Math.random()}`;
+    }
+  };
+
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
@@ -128,15 +137,13 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         <div className="relative p-[2px] rounded-[20px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_30px_rgba(139,92,246,0.2)]">
           <div onClick={handlePlayToggle} className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-[18px] overflow-hidden cursor-pointer select-none">
             
-            {/* If Unsplash rate-limits, bgFailed becomes true, and the sleek slate background remains visible */}
-            {!bgFailed && (
-              <img 
-                src={videoData.bg} 
-                alt="" 
-                className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 opacity-60"
-                onError={() => setBgFailed(true)}
-              />
-            )}
+            {/* The Auto-Healing Image Tag */}
+            <img 
+              src={videoData.bg} 
+              alt="" 
+              className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 opacity-60"
+              onError={handleImageError}
+            />
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">

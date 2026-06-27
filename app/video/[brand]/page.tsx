@@ -18,7 +18,7 @@ export default function StandaloneVideoPage() {
   const rawHook = searchParams?.get('h') || `me using ${brandName}`;
   const bgKey = (searchParams?.get('b') || "office") as string;
   const gifKey = (searchParams?.get('g') || "elon") as string;
-  const timestampParam = searchParams?.get('t') || "default"; // Added timestamp to force reactivity
+  const timestampParam = searchParams?.get('t') || "default"; 
 
   const hookText = rawHook.replace(/-/g, ' ');
 
@@ -70,6 +70,7 @@ export default function StandaloneVideoPage() {
 
   const [videoData, setVideoData] = useState({
     bg: assetLibrary.backgrounds.office[0],
+    bgCategory: "office",
     gif: assetLibrary.stickers.elon,
     audio: assetLibrary.audio[0]
   });
@@ -85,9 +86,9 @@ export default function StandaloneVideoPage() {
     const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
 
     setBgFailed(false);
-    setVideoData({ bg: selectedBg, gif: selectedGif, audio: randomAudio });
+    setVideoData({ bg: selectedBg, bgCategory: validBgKey, gif: selectedGif, audio: randomAudio });
     setIsLoaded(true);
-  }, [bgKey, gifKey, timestampParam]); // Hooked to timestampParam to guarantee fresh load on new links
+  }, [bgKey, gifKey, timestampParam]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = isMuted;
@@ -97,6 +98,13 @@ export default function StandaloneVideoPage() {
     if (!audioRef.current) return;
     isPlaying ? audioRef.current.pause() : audioRef.current.play().catch(e => console.log(e));
     setIsPlaying(!isPlaying);
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    if (!bgFailed) {
+      setBgFailed(true);
+      e.currentTarget.src = `https://loremflickr.com/800/1200/${videoData.bgCategory}?random=${Math.random()}`;
+    }
   };
 
   if (!isLoaded) return <div className="min-h-screen bg-[#0a0a0a]" />;
@@ -114,14 +122,12 @@ export default function StandaloneVideoPage() {
           onClick={handlePlayToggle} 
           className="relative w-[320px] h-[568px] sm:w-[360px] sm:h-[640px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-[22px] overflow-hidden cursor-pointer select-none"
         >
-          {!bgFailed && (
-            <img 
-              src={videoData.bg} 
-              alt="Environment" 
-              className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 opacity-60"
-              onError={() => setBgFailed(true)}
-            />
-          )}
+          <img 
+            src={videoData.bg} 
+            alt="Environment" 
+            className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 opacity-60"
+            onError={handleImageError}
+          />
 
           <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
           
