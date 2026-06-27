@@ -20,8 +20,8 @@ export async function POST(req: Request) {
     - Hook Rule 2: Use sensible, relatable, self-deprecating humor. (Examples: "my bank account watching me open nike.com at 2am", "me acting like i know my macros so i just let calai handle it", "telling myself i'll only watch one video on youtube").
     - Hook Rule 3: ABSOLUTELY NO CRINGE SLANG. Do not use "rizz", "fr fr", "cooked", or "nemesis". 
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
-    - gifCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS. DO NOT INVENT YOUR OWN: "drake", "rock", "shaq", "hart", "spongebob".
-    - bgCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS THAT MATCHES THE PRODUCT. DO NOT INVENT YOUR OWN: "gym", "kitchen", "bedroom", "office", "store".
+    - gifCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE TEN WORDS. DO NOT INVENT YOUR OWN: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo".
+    - bgCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS THAT MATCHES THE PRODUCT: "gym", "kitchen", "bedroom", "office", "store".
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.5, // Lowered temperature forces the AI to obey the exact categories
+          temperature: 0.5, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
