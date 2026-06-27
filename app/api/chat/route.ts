@@ -5,25 +5,34 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    const systemPrompt = `You are the AI director for a viral UGC (User Generated Content) video engine. Your job is twofold:
+    // Extract brand early so we can inject it into the prompt rules
+    const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
+    const match = lastMsg.match(urlRegex);
+    const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
 
-    1. CONVERSATION: Handle greetings ("hi") and capabilities questions ("what can you do?") naturally, warmly, and concisely. Remind users you turn product URLs into hilarious short-form ads.
+    const systemPrompt = `You are the backend AI for a UGC video engine. You have TWO distinct modes.
+
+    MODE 1: CONVERSATION (If user says "hi", asks a general question, etc.)
+    - Answer naturally, conversationally, and accurately.
+    - CRITICAL: DO NOT use hyphens instead of spaces. Use normal English.
+    - CRITICAL: DO NOT mention that you generate videos UNLESS the user explicitly asks what you do.
+
+    MODE 2: VIDEO DIRECTION (If the user provides a product URL or describes a product to build a video for)
+    - Analyze the product. Output a blueprint for a TikTok-style ad.
+    - Hook Rule 1: You MUST include the exact word "${brand}" in the hook.
+    - Hook Rule 2: Use Gen-Z slang (e.g., POV, cheat code, fr, literal).
+    - Hook Rule 3: Replace EVERY space in the hook with a hyphen (-). Example: POV:-USING-${brand}-IS-INSANE
+    - BG Search Term: 2-3 words describing a realistic room (e.g., modern-office, messy-bedroom).
+    - GIF Search Term: Name of a specific trending celebrity (e.g., Drake, IShowSpeed, Shaq, Kevin-Hart).
     
-    2. VIDEO DIRECTION: When a user provides a product name or URL, switch to director mode. Analyze its core utility. You must output the blueprint for a meme-style video. 
-    
-    CRITICAL RULES:
-    - Hook: Use hooks like "POV:", "Me when", "Nobody:". Prioritize high comedy and internet sarcasm. Replace EVERY space with a hyphen (-).
-    - BG Search Term: A 2-4 word description of a realistic room matching the vibe. Replace spaces with hyphens.
-    - GIF Search Term: Name of a trending celebrity or meme character expressing the emotion. Replace spaces with hyphens.
-    
-    OUTPUT EXACTLY THIS JSON SCHEMA AND NOTHING ELSE:
+    OUTPUT EXACTLY THIS JSON SCHEMA:
     {
       "intent": "chat" or "video",
-      "chatResponse": "Your conversational reply (only if intent is chat)",
+      "chatResponse": "Normal English text (only if intent is chat)",
       "videoBlueprint": {
-        "hook": "POV:-WHEN-YOU-USE-...",
-        "bgSearchTerm": "messy-bedroom",
-        "gifSearchTerm": "drake-computer"
+        "hook": "Hyphenated-Hook-Here-With-Brand-Name",
+        "bgSearchTerm": "room-description",
+        "gifSearchTerm": "celebrity-name"
       }
     }`;
 
@@ -35,7 +44,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.1,
+          temperature: 0.9, // Lowered slightly to ensure instruction adherence
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -50,10 +59,6 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
-        const match = lastMsg.match(urlRegex);
-        const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
-        
         const hook = aiLogic.videoBlueprint?.hook || `POV:-USING-${brand}`;
         const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "aesthetic-room";
         const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "drake-computer";
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
       }
     } catch (e) {
       console.error("Groq Engine Error:", e);
-      responseText = "I'm having a quick connection hiccup, but I'm ready to generate videos!";
+      responseText = "I'm having a quick connection hiccup, but I'm ready to chat or generate videos!";
     }
 
     const encoder = new TextEncoder();
