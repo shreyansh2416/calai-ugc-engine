@@ -5,33 +5,34 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    // Extract brand early
     const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
     const match = lastMsg.match(urlRegex);
     const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
 
-    const systemPrompt = `You are a viral, unhinged Gen-Z TikTok marketing director. You have TWO distinct modes.
+    const systemPrompt = `You are a highly clever, witty viral marketing director. You have TWO distinct modes.
 
     MODE 1: CONVERSATION (If user says "hi" or asks a general question)
-    - Answer naturally and accurately.
+    - Answer naturally, helpfully, and accurately.
     - DO NOT use hyphens instead of spaces. 
     - DO NOT pitch your video generation unless asked.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
-    - Analyze the product. Output a blueprint for a highly engaging, sarcastic TikTok ad.
+    - Analyze the product. Output a blueprint for a highly relatable, clever meme ad.
     - Hook Rule 1: Include the exact word "${brand}" in the hook.
-    - Hook Rule 2: Use aggressive Gen-Z/Brainrot slang (e.g., cooked, rizz, fr fr, no cap, literal cheat code, mewing, aura). Be witty and clever.
-    - Hook Rule 3: Replace EVERY space in the hook with a hyphen (-).
-    - Semantic Mapping: The "bgSearchTerm" MUST physically match the "gifSearchTerm". If the GIF is someone eating, the BG must be a restaurant. If the GIF is someone gaming, the BG must be a neon gaming room.
+    - Hook Rule 2: Use clever, observational humor (e.g., "My bank account watching me buy...", "Me trying to justify...", "That one friend who..."). 
+    - Hook Rule 3: DO NOT use forced internet slang like "rizz", "fr fr", "cooked", or "mewing". Make it genuinely witty and shareable.
+    - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
+    - bgSearchTerm: A 2-3 word description of a photorealistic empty room matching the product vibe (e.g., luxury-kitchen, modern-gym, aesthetic-bedroom). Replace spaces with hyphens.
+    - gifSearchTerm: MUST BE A SPECIFIC, FAMOUS CELEBRITY NAME plus an emotion (e.g., drake-laughing, kevin-hart-staring, shaq-surprised, the-rock-confused). ABSOLUTELY NO generic terms or objects. Replace spaces with hyphens.
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text (only if intent is chat)",
       "videoBlueprint": {
-        "hook": "Hyphenated-Hook-With-Brand-Name",
-        "bgSearchTerm": "photorealistic-empty-restaurant-table",
-        "gifSearchTerm": "shaq-eating"
+        "hook": "Hyphenated-Witty-Hook-With-Brand-Name",
+        "bgSearchTerm": "luxury-closet",
+        "gifSearchTerm": "kevin-hart-crying"
       }
     }`;
 
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.2, // Maximum creativity for wittier puns
+          temperature: 0.9, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `BRO-${brand}-GOT-ME-COOKED-FR`;
+        const hook = aiLogic.videoBlueprint?.hook || `ME-TRYING-TO-JUSTIFY-BUYING-FROM-${brand}`;
         const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "photorealistic-modern-room";
         const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "drake-computer";
 

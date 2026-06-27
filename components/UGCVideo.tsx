@@ -47,10 +47,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       
       const rawHook = urlObj.searchParams.get('h') || `POV:-USING-${brandName}`;
       const bgSearchTerm = urlObj.searchParams.get('b') || "modern-office";
-      const gifSearchTerm = urlObj.searchParams.get('g') || "drake";
+      const gifSearchTerm = urlObj.searchParams.get('g') || "drake-computer";
 
       const hookText = rawHook.replace(/-/g, ' ');
-      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " photorealistic lighting"; // Forces high-quality realistic backgrounds
+      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " photorealistic lighting empty room"; 
       const cleanGifQuery = gifSearchTerm.replace(/-/g, ' ');
 
       const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true`;
@@ -64,15 +64,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         audio: randomAudio
       }));
 
-      // APPENED "transparent no background" to strictly force Tenor's algorithm
-      const fetchUrl = `https://g.tenor.com/v1/search?q=${encodeURIComponent(cleanGifQuery + " transparent no background")}&key=LIVDSRZULELA&searchfilter=sticker&limit=10`;
+      // Only search for Stickers (transparent cutouts) of the celebrity
+      const fetchUrl = `https://g.tenor.com/v1/search?q=${encodeURIComponent(cleanGifQuery)}&key=LIVDSRZULELA&searchfilter=sticker&limit=10`;
 
       fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
           if (data && data.results && data.results.length > 0) {
-            // FIX FOR REPEATING GIFS: Pick a random result from the top 10 instead of always index [0]
-            const randomIndex = Math.floor(Math.random() * Math.min(data.results.length, 6));
+            const randomIndex = Math.floor(Math.random() * Math.min(data.results.length, 5));
             setVideoData(prev => ({ ...prev, gif: data.results[randomIndex].media[0].gif.url }));
           } else {
             setVideoData(prev => ({ ...prev, gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif" }));
@@ -143,19 +142,19 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* TRUE TRANSPARENT STICKER WITH MULTIPLY FAILSAFE */}
+            {/* TRUE TRANSPARENT STICKER */}
             <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none z-[10]">
               <img 
                 src={videoData.gif} 
                 alt="" 
-                // Mix-blend-multiply mathematically strips solid white backgrounds out of the image if Tenor fails to provide a pure PNG/transparent GIF
-                className="w-[220px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)] mix-blend-multiply contrast-125" 
+                // Removed mix-blend-multiply so the image retains its true colors and natural transparency
+                className="w-[240px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.8)]" 
                 onError={(e) => { e.currentTarget.src = "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"; }} 
               />
             </div>
 
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[20]">
-              <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.1] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
+              <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.15] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
               </h3>
             </div>
