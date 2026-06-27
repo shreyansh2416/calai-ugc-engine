@@ -9,6 +9,9 @@ export async function POST(req: Request) {
     const match = lastMsg.match(urlRegex);
     const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toLowerCase() : "the product";
 
+    // Injecting randomness so the LLM NEVER repeats itself
+    const randomSeed = Math.floor(Math.random() * 100000);
+
     const systemPrompt = `You are a highly clever viral marketing director. You have TWO distinct modes.
 
     MODE 1: CONVERSATION (If user says "hi" or asks a general question)
@@ -17,11 +20,11 @@ export async function POST(req: Request) {
     MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
     - Analyze the product's actual use case (e.g., Nike = buying expensive shoes, CalAI = tracking macros/diet, YouTube = getting distracted/binging).
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: Use sensible, relatable, self-deprecating humor. (Examples: "my bank account watching me open nike.com at 2am", "me acting like i know my macros so i just let calai handle it", "telling myself i'll only watch one video on youtube").
+    - Hook Rule 2: WRITE A COMPLETELY UNIQUE JOKE. NEVER repeat previous jokes. Use sensible, relatable, self-deprecating humor. 
     - Hook Rule 3: ABSOLUTELY NO CRINGE SLANG. Do not use "rizz", "fr fr", "cooked", or "nemesis". 
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
-    - gifCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE TEN WORDS. DO NOT INVENT YOUR OWN: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo".
-    - bgCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS THAT MATCHES THE PRODUCT: "gym", "kitchen", "bedroom", "office", "store".
+    - gifCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE TEN WORDS: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to pick a completely random one. DO NOT favor the first items).
+    - bgCategory: YOU MUST CHOOSE EXACTLY ONE OF THESE FIVE WORDS: "gym", "kitchen", "bedroom", "office", "store". (Pick the one that makes the most sense, but vary it if possible).
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.5, 
+          temperature: 1.1, // High temperature forces creative variety
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -61,7 +64,8 @@ export async function POST(req: Request) {
         const bgTerm = aiLogic.videoBlueprint?.bgCategory || "bedroom";
         const gifTerm = aiLogic.videoBlueprint?.gifCategory || "drake";
 
-        const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
+        // Appending Date.now() forces the React frontend to treat EVERY link as brand new, regenerating audio and state.
+        const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}&t=${Date.now()}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
