@@ -12,14 +12,15 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-    gif: "/api/proxy?url=" + encodeURIComponent("https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif"),
+    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
+    gif: "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif", // Safe initial load
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "POV: AUTOMATING VIDEO CREATION"
+    text: "LOADING CREATIVE ASSETS..."
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
+  // 10 UNIQUE AUDIO TRACKS
   const audios: Record<number, string> = {
     1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     2: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
@@ -33,9 +34,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     10: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
   };
 
-  // Helper function to force the GIF through the backend proxy you built
-  const withProxy = (url: string) => `/api/proxy?url=${encodeURIComponent(url)}`;
-
   useEffect(() => {
     let rawUrl = "";
     if (typeof videoState === 'string' && videoState.includes('http')) rawUrl = videoState;
@@ -45,45 +43,44 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const urlObj = new URL(rawUrl);
       const brandName = rawUrl.split('/').pop()?.split('?')[0] || "THE APP";
       
-      const themeId = parseInt(urlObj.searchParams.get('t') || "4");
-      const audioId = parseInt(urlObj.searchParams.get('a') || "1");
-      
       const rawHook = urlObj.searchParams.get('h') || `POV:-USING-${brandName}`;
+      const bgSearchTerm = urlObj.searchParams.get('b') || "modern-office";
+      const gifSearchTerm = urlObj.searchParams.get('g') || "drake-computer";
+
       const hookText = rawHook.replace(/-/g, ' ');
+      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ');
+      const cleanGifQuery = gifSearchTerm.replace(/-/g, ' ');
 
-      // Every single GIF is now routed through your API proxy
-      const themes: Record<number, any> = {
-        1: { 
-          bg: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: withProxy("https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif") 
-        },
-        2: { 
-          bg: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: withProxy("https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif")
-        },
-        3: { 
-          bg: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: withProxy("https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif")
-        },
-        4: { 
-          bg: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: withProxy("https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif")
-        },
-        5: { 
-          bg: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
-          gif: withProxy("https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif")
-        }
-      };
-
-      const selectedTheme = themes[themeId] || themes[4];
+      // 1. Dynamic AI Background Generation based on LLM search term
+      const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true`;
       
-      setVideoData({ 
+      // 2. Randomize Audio independently
+      const randomAudio = audios[Math.floor(Math.random() * 10) + 1];
+
+      setVideoData(prev => ({ 
+        ...prev, 
         brand: brandName, 
         text: hookText, 
-        bg: selectedTheme.bg,
-        gif: selectedTheme.gif,
-        audio: audios[audioId] || audios[1]
-      });
+        bg: dynamicBg,
+        audio: randomAudio
+      }));
+
+      // 3. Dynamic Giphy API Fetching (Using the public beta key)
+      fetch(`https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(cleanGifQuery)}&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.data && data.data.length > 0) {
+            // Success! The API found a transparent sticker for the search term
+            setVideoData(prev => ({ ...prev, gif: data.data[0].images.fixed_height.url }));
+          } else {
+            // Fallback if the search term yields nothing
+            setVideoData(prev => ({ ...prev, gif: "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif" }));
+          }
+        })
+        .catch(() => {
+          // Absolute fail-safe: A completely unblockable direct Giphy link
+          setVideoData(prev => ({ ...prev, gif: "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif" }));
+        });
     }
   }, [videoState]);
 
@@ -111,6 +108,13 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body, p, span, div, input, button {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+      `}} />
+
       <div className="w-full flex flex-col items-center my-8" style={{ isolation: 'isolate' }}>
         <div className="relative p-[2px] rounded-[20px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_30px_rgba(139,92,246,0.2)] group hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] transition-all duration-500">
           
@@ -118,10 +122,12 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             onClick={handlePlayToggle}
             className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
+            {/* BACKGROUND */}
             <img 
               src={videoData.bg} 
-              alt="Background" 
+              alt="" 
               className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity filter contrast-125 pointer-events-none" 
+              onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800"} // Fallback if AI generator fails
             />
             
             <video 
@@ -136,25 +142,17 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* THE RETURN OF THE GIF LAYER */}
-            {/* Z-index increased, positioned dead center */}
+            {/* CELEBRITY GIF OVERLAY - Uses unbreakable fallback onError */}
             <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none z-[10]">
               <img 
                 src={videoData.gif} 
-                alt="Celebrity Overlay" 
+                alt="" 
                 className="w-[220px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]" 
-                // Hail-Mary fallback: If the proxy somehow fails, it attempts to load the URL directly
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src.includes('/api/proxy')) {
-                    target.src = decodeURIComponent(videoData.gif.split('?url=')[1]);
-                  } else {
-                    target.style.display = 'none';
-                  }
-                }}
+                onError={(e) => { e.currentTarget.src = "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif"; }} 
               />
             </div>
 
+            {/* DYNAMIC HOOK */}
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.1] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}

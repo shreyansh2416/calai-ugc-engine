@@ -5,25 +5,26 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
+    // Exact System Prompt derived from the Recruiter's Rubric
     const systemPrompt = `You are the AI director for a viral UGC (User Generated Content) video engine. Your job is twofold:
 
     1. CONVERSATION: Handle greetings ("hi") and capabilities questions ("what can you do?") naturally, warmly, and concisely. Remind users you turn product URLs into hilarious short-form ads.
     
-    2. VIDEO DIRECTION: When a user provides a product name or URL, analyze its core utility. You must output the blueprint for a 5-10 second meme-style video. 
+    2. VIDEO DIRECTION: When a user provides a product name or URL, switch to director mode. Analyze its core utility. You must output the blueprint for a meme-style video. 
     
-    Your video text overlays must follow modern TikTok/Reels meme formats:
-    - Use hooks like "POV:", "Me when", "Nobody:", "My doctor:".
-    - Prioritize high comedy, relatability, and internet sarcasm over corporate advertising.
-    - If they provide a URL, tailor the joke to what the product actually does.
-    - CRITICAL: Replace EVERY space in your hook with a hyphen (-). Example: POV:-Me-when-I-use-this-app
+    CRITICAL RULES:
+    - Hook: Use hooks like "POV:", "Me when", "Nobody:". Prioritize high comedy and internet sarcasm. Replace EVERY space with a hyphen (-).
+    - BG Search Term: A 2-4 word description of a realistic room matching the vibe. Replace spaces with hyphens.
+    - GIF Search Term: Name of a trending celebrity or meme character expressing the emotion. Replace spaces with hyphens.
     
-    CRITICAL INSTRUCTION: You MUST output ONLY valid JSON using this exact schema:
+    OUTPUT EXACTLY THIS JSON SCHEMA AND NOTHING ELSE:
     {
       "intent": "chat" or "video",
-      "chatResponse": "Your conversational reply (only if intent is chat, otherwise empty string)",
+      "chatResponse": "Your conversational reply (only if intent is chat)",
       "videoBlueprint": {
-        "themeId": 1 to 5 (1=Food/Diet, 2=Productivity/Work, 3=Home/Life, 4=Tech/Gaming, 5=Fitness),
-        "hook": "Trendy-hyphenated-text-hook-here"
+        "hook": "POV:-WHEN-YOU-USE-...",
+        "bgSearchTerm": "messy-bedroom",
+        "gifSearchTerm": "drake-computer"
       }
     }`;
 
@@ -52,13 +53,14 @@ export async function POST(req: Request) {
       } else {
         const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
         const match = lastMsg.match(urlRegex);
-        const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THIS_PRODUCT";
+        const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
         
-        const themeId = aiLogic.videoBlueprint.themeId || Math.floor(Math.random() * 5) + 1;
-        const hook = aiLogic.videoBlueprint.hook || `POV:-WHEN-YOU-USE-${brand}`;
-        const audioId = Math.floor(Math.random() * 10) + 1;
+        const hook = aiLogic.videoBlueprint.hook || `POV:-USING-${brand}`;
+        const bgTerm = aiLogic.videoBlueprint.bgSearchTerm || "aesthetic-room";
+        const gifTerm = aiLogic.videoBlueprint.gifSearchTerm || "drake-computer";
 
-        const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&a=${audioId}&h=${hook}`;
+        // Hyphens ensure the URL can wrap to the next line in your chatbox!
+        const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
