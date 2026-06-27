@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 
 export default function UGCPlayer({ videoState }: { videoState: any }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hasInitialized = useRef(false);
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -11,20 +12,19 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
-    bg: "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800",
-    gif: "/stickers/drake.gif", 
+    bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    gif: "/stickers/elon.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets..."
   });
 
-  // BULLETPROOF DICTIONARY: Using Pexels to avoid Unsplash rate limits
   const assetLibrary = {
     backgrounds: {
-      gym: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800",
-      kitchen: "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800",
-      bedroom: "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800",
-      office: "https://images.pexels.com/photos/289814/pexels-photo-289814.jpeg?auto=compress&cs=tinysrgb&w=800",
-      store: "https://images.pexels.com/photos/1036857/pexels-photo-1036857.jpeg?auto=compress&cs=tinysrgb&w=800"
+      gym: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
+      kitchen: "https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80",
+      bedroom: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
+      office: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+      store: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80"
     },
     stickers: {
       cena: "/stickers/cena.gif",
@@ -41,32 +41,31 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     audio: [
       "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
     ]
   };
 
   useEffect(() => {
+    if (hasInitialized.current) return;
+
     let rawUrl = "";
     if (typeof videoState === 'string' && videoState.includes('http')) rawUrl = videoState;
     else if (videoState && typeof videoState.url === 'string') rawUrl = videoState.url;
 
     if (rawUrl && rawUrl.includes('/render/')) {
+      hasInitialized.current = true;
+
       const urlObj = new URL(rawUrl);
       const brandName = urlObj.pathname.split('/').pop()?.toLowerCase() || "the app";
       
       const rawHook = urlObj.searchParams.get('h') || `me using ${brandName}`;
       const hookText = rawHook.replace(/-/g, ' ');
 
-      const bgKey = (urlObj.searchParams.get('b') || "bedroom") as keyof typeof assetLibrary.backgrounds;
-      const gifKey = (urlObj.searchParams.get('g') || "drake") as keyof typeof assetLibrary.stickers;
+      const bgKey = (urlObj.searchParams.get('b') || "office") as keyof typeof assetLibrary.backgrounds;
+      const gifKey = (urlObj.searchParams.get('g') || "elon") as keyof typeof assetLibrary.stickers;
 
-      const selectedBg = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.bedroom;
-      const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.drake;
-      
-      // Forces a completely new random audio track every time the component receives a new videoState
+      const selectedBg = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.office;
+      const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.elon;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
 
       setVideoData({ 
@@ -93,6 +92,12 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     setIsPlaying(!isPlaying);
   };
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(`https://ugc-engine.app/shared/${videoData.brand.toLowerCase()}`);
+    setShareText("Link Copied!");
+    setTimeout(() => setShareText("Share Link"), 2000);
+  };
+
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
@@ -108,13 +113,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           
           <div onClick={handlePlayToggle} className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-zinc-900 rounded-[18px] overflow-hidden cursor-pointer select-none">
             
-            <img 
-              src={videoData.bg} 
-              alt="Environment" 
-              className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none" 
-              // Ironclad fallback to ensure it is never a pure black screen
-              onError={(e) => { e.currentTarget.src = "https://images.pexels.com/photos/1743227/pexels-photo-1743227.jpeg?auto=compress&cs=tinysrgb&w=800"; }}
-            />
+            <img src={videoData.bg} alt="Environment" className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none" />
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
