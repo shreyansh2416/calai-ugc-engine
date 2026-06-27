@@ -1,24 +1,19 @@
 export const runtime = 'edge';
 
-// Edge-safe metadata extraction helper
 async function fetchSiteMetadata(url: string): Promise<string> {
   try {
     const targetUrl = url.startsWith('http') ? url : `https://${url}`;
     const response = await fetch(targetUrl, { 
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-      signal: AbortSignal.timeout(2500) // Ensure a slow site doesn't stall the API response
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: AbortSignal.timeout(2500) 
     });
     
     const html = await response.text();
-    
-    // Regex parsing to capture meta description content safely on Edge runtimes
     const match = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i) ||
-                  html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']description["']/i) ||
                   html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i);
                   
     return match && match[1] ? match[1].trim() : "";
   } catch (e) {
-    console.error("Metadata extraction skipped:", e);
     return "";
   }
 }
@@ -40,32 +35,40 @@ export async function POST(req: Request) {
     if (match) {
       const fullUrl = match[0];
       brand = fullUrl.replace(/(^\w+:|^)\/\//, '').split('/')[0].toLowerCase();
-      
-      // CRITICAL UPGRADE: Actively scrape the live site context
       const siteDescription = await fetchSiteMetadata(fullUrl);
       if (siteDescription) {
         crawledContext = `CRAWLED DESCRIPTION FROM ${brand}: "${siteDescription}"`;
       }
     }
 
+    // This array holds 10 completely distinct trending TikTok concepts
+    const memeFormats = [
+      `"the urge to drop everything and completely obsess over ${brand}"`,
+      `"my FBI agent watching me spend another 4 hours on ${brand}"`,
+      `"my top 5 horror movies: number 1, living without ${brand}"`,
+      `"me trying to explain to my friends why ${brand} is the greatest thing ever"`,
+      `"when someone asks how I did it so fast and my secret is just ${brand}"`,
+      `"my bank account watching me ignore it completely to use ${brand}"`,
+      `"how it feels to absolutely master ${brand}"`,
+      `"when they say you should balance your expenses but ${brand} exists"`,
+      `"POV: your attention span is cooked so you open ${brand} instead"`,
+      `"me acting like an absolute academic weapon because I use ${brand}"`
+    ];
+
+    // Select ONE specific meme format mathematically to force the AI into variety
     const randomSeed = Math.floor(Math.random() * 100000);
+    const forcedMeme = memeFormats[randomSeed % memeFormats.length];
 
     const systemPrompt = `You are an elite UGC viral marketing director. 
 
     MODE 1: CONVERSATION 
-    - Answer naturally, concisely, and accurately like ChatGPT.
+    - Answer naturally, concisely, and accurately.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL)
-    - Analyze the brand name, and review this crawled context from their live site to see exactly what they offer: ${crawledContext}
-    - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: TRENDING TIKTOK MEME HUMOR. Use the crawled context to tailor a hyper-specific, relatable joke into one of these 5 trending formats:
-        1. "POV: you finally started using ${brand}"
-        2. "my FBI agent watching me obsessed with ${brand}"
-        3. "me explaining to everyone why ${brand} is the best"
-        4. "the urge to drop everything and use ${brand}"
-        5. "how it feels to master ${brand}"
-    - Hook Rule 3: Write it like a fast-paced internet caption. Keep it witty and realistic.
-    - Hook Rule 4: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
+    - Analyze the brand name, and review this crawled context from their live site: ${crawledContext}
+    - Hook Rule 1: You MUST write your caption based EXACTLY on this trending meme format: ${forcedMeme}
+    - Hook Rule 2: Adapt the format slightly to match the product's actual use case (e.g. tracking calories, watching videos, buying shoes) but DO NOT lose the comedic punchline.
+    - Hook Rule 3: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
     - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to shuffle your selection).
     - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the product domain.
     
@@ -88,7 +91,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.95, 
+          temperature: 0.9, 
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })

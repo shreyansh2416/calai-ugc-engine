@@ -10,11 +10,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [isMuted, setIsMuted] = useState(false);
   const [copyText, setCopyText] = useState("Copy Link");
   const [bgFailed, setBgFailed] = useState(false);
-  const [progress, setProgress] = useState(0); // Track progress percentage (0 - 100)
+  const [progress, setProgress] = useState(0); 
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
-    bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&h=800&q=80",
     bgCategory: "office", 
     gif: "/stickers/elon.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -24,11 +24,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
   const assetLibrary = {
     backgrounds: {
-      gym: ["https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80", "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&q=80", "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80"],
-      kitchen: ["https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80", "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80", "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80"],
-      bedroom: ["https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80", "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80", "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80"],
-      office: ["https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80"],
-      store: ["https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80", "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80", "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80"]
+      gym: ["https://images.unsplash.com/photo-1534438327276-14e5300c3a48", "https://images.unsplash.com/photo-1540497077202-7c8a3999166f", "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b", "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e", "https://images.unsplash.com/photo-1518611012118-696072aa579a"],
+      kitchen: ["https://images.unsplash.com/photo-1556910103-1c02745a872f", "https://images.unsplash.com/photo-1556911220-e15b29be8c8f", "https://images.unsplash.com/photo-1507089947368-19c1da9775ae", "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1524859330668-c357331384f5"],
+      bedroom: ["https://images.unsplash.com/photo-1598550473950-575fb8629ba8", "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af", "https://images.unsplash.com/photo-1540518614846-7eded433c457", "https://images.unsplash.com/photo-1616594039964-ae9021a400a0", "https://images.unsplash.com/photo-1505693314120-0d443867891c"],
+      office: ["https://images.unsplash.com/photo-1497366216548-37526070297c", "https://images.unsplash.com/photo-1524758631624-e2822e304c36", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d", "https://images.unsplash.com/photo-1520607162513-3d70747a9f7d", "https://images.unsplash.com/photo-1497215728101-856f4ea42174"],
+      store: ["https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5", "https://images.unsplash.com/photo-1441986300917-64674bd600d8", "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e", "https://images.unsplash.com/photo-1555529771-835f59fc5efe", "https://images.unsplash.com/photo-1556905055-8f358a7a47b2"]
     },
     stickers: {
       cena: "/stickers/cena.gif", drake: "/stickers/drake.gif", elon: "/stickers/elon.gif",
@@ -54,7 +54,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const gifKey = (urlObj.searchParams.get('g') || "elon") as keyof typeof assetLibrary.stickers;
 
       const bgArray = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.office;
-      const selectedBg = bgArray[Math.floor(Math.random() * bgArray.length)];
+      const rawBgUrl = bgArray[Math.floor(Math.random() * bgArray.length)];
+      
+      // CRITICAL UPGRADE: Force Unsplash to perfectly crop the image server-side to exactly 9:16 vertical
+      const fullBleedBg = rawBgUrl.split('?')[0] + "?auto=format&fit=crop&w=400&h=800&q=80";
       
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.elon;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
@@ -66,7 +69,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       setVideoData({ 
         brand: brandName, 
         text: hookText.toLowerCase(), 
-        bg: selectedBg,
+        bg: fullBleedBg,
         bgCategory: bgKey,
         gif: selectedGif,
         audio: randomAudio,
@@ -83,8 +86,8 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const startTimeline = () => {
     progressInterval.current = setInterval(() => {
       setProgress((oldProgress) => {
-        if (oldProgress >= 100) return 0; // Seamless video loops back around
-        return oldProgress + 1.4; // Steps smoothly over a targeted ~7s duration
+        if (oldProgress >= 100) return 0; 
+        return oldProgress + 1.4; 
       });
     }, 100);
   };
@@ -110,7 +113,9 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!bgFailed) {
       setBgFailed(true);
-      e.currentTarget.src = `https://picsum.photos/seed/${Math.random()}/400/800`;
+      // Clean integer seed to prevent fallback breaking
+      const safeSeed = Math.floor(Math.random() * 10000);
+      e.currentTarget.src = `https://picsum.photos/seed/${safeSeed}/400/800`;
     }
   };
 
@@ -128,7 +133,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <img 
               src={videoData.bg} 
-              alt="" 
+              alt="Environment" 
               className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 opacity-60"
               onError={handleImageError}
             />
@@ -140,10 +145,9 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             </div>
             
             <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
-              <img src={videoData.gif} alt="" className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" />
+              <img src={videoData.gif} alt="Celebrity" className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" />
             </div>
 
-            {/* NATIVE PROGRESS TIMELINE TRACKER LAYER */}
             <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-white/20 z-[40]">
               <div className="h-full bg-purple-500 transition-all duration-100 ease-linear" style={{ width: `${progress}%` }} />
             </div>
