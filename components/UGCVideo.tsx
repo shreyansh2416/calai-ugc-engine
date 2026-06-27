@@ -12,15 +12,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
-    gif: "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif", // Safe initial load
+    bg: "https://image.pollinations.ai/prompt/modern%20office?width=800&height=1200&nologo=true",
+    gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "LOADING CREATIVE ASSETS..."
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
-  // 10 UNIQUE AUDIO TRACKS
   const audios: Record<number, string> = {
     1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     2: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
@@ -51,10 +50,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ');
       const cleanGifQuery = gifSearchTerm.replace(/-/g, ' ');
 
-      // 1. Dynamic AI Background Generation based on LLM search term
+      // 1. Dynamic Background from Pollinations AI
       const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true`;
       
-      // 2. Randomize Audio independently
+      // 2. Random Audio
       const randomAudio = audios[Math.floor(Math.random() * 10) + 1];
 
       setVideoData(prev => ({ 
@@ -65,21 +64,20 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         audio: randomAudio
       }));
 
-      // 3. Dynamic Giphy API Fetching (Using the public beta key)
-      fetch(`https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(cleanGifQuery)}&limit=1`)
+      // 3. Dynamic Tenor API Fetching (Bypasses Giphy's "Content Not Available" poison entirely)
+      // Uses the public Tenor search key LIVDSRZULELA
+      fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(cleanGifQuery + " transparent sticker")}&key=LIVDSRZULELA&limit=1`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.data && data.data.length > 0) {
-            // Success! The API found a transparent sticker for the search term
-            setVideoData(prev => ({ ...prev, gif: data.data[0].images.fixed_height.url }));
+          if (data && data.results && data.results.length > 0) {
+            setVideoData(prev => ({ ...prev, gif: data.results[0].media[0].gif.url }));
           } else {
-            // Fallback if the search term yields nothing
-            setVideoData(prev => ({ ...prev, gif: "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif" }));
+            // Unblockable Fallback if search term is too weird
+            setVideoData(prev => ({ ...prev, gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif" }));
           }
         })
         .catch(() => {
-          // Absolute fail-safe: A completely unblockable direct Giphy link
-          setVideoData(prev => ({ ...prev, gif: "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif" }));
+          setVideoData(prev => ({ ...prev, gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif" }));
         });
     }
   }, [videoState]);
@@ -122,12 +120,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             onClick={handlePlayToggle}
             className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
-            {/* BACKGROUND */}
             <img 
               src={videoData.bg} 
               alt="" 
               className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity filter contrast-125 pointer-events-none" 
-              onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800"} // Fallback if AI generator fails
+              onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800"} 
             />
             
             <video 
@@ -142,17 +139,15 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* CELEBRITY GIF OVERLAY - Uses unbreakable fallback onError */}
             <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none z-[10]">
               <img 
                 src={videoData.gif} 
                 alt="" 
                 className="w-[220px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]" 
-                onError={(e) => { e.currentTarget.src = "https://i.giphy.com/8a6Q4kO7pBwAAAAi.gif"; }} 
+                onError={(e) => { e.currentTarget.src = "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"; }} 
               />
             </div>
 
-            {/* DYNAMIC HOOK */}
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.1] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}

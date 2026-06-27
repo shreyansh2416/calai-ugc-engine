@@ -5,7 +5,6 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    // Exact System Prompt derived from the Recruiter's Rubric
     const systemPrompt = `You are the AI director for a viral UGC (User Generated Content) video engine. Your job is twofold:
 
     1. CONVERSATION: Handle greetings ("hi") and capabilities questions ("what can you do?") naturally, warmly, and concisely. Remind users you turn product URLs into hilarious short-form ads.
@@ -55,11 +54,10 @@ export async function POST(req: Request) {
         const match = lastMsg.match(urlRegex);
         const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
         
-        const hook = aiLogic.videoBlueprint.hook || `POV:-USING-${brand}`;
-        const bgTerm = aiLogic.videoBlueprint.bgSearchTerm || "aesthetic-room";
-        const gifTerm = aiLogic.videoBlueprint.gifSearchTerm || "drake-computer";
+        const hook = aiLogic.videoBlueprint?.hook || `POV:-USING-${brand}`;
+        const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "aesthetic-room";
+        const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "drake-computer";
 
-        // Hyphens ensure the URL can wrap to the next line in your chatbox!
         const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
