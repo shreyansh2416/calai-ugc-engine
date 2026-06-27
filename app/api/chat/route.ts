@@ -14,24 +14,20 @@ export async function POST(req: Request) {
 
     const randomSeed = Math.floor(Math.random() * 100000);
 
-    const systemPrompt = `You are an elite, highly creative UGC viral marketing director. 
+    const systemPrompt = `You are a highly creative UGC marketing director.
 
-    MODE 1: CONVERSATION (If user says "hi" or asks a general question)
+    MODE 1: CONVERSATION
     - Answer naturally, conversationally, and accurately. DO NOT pitch video generation unless asked.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL)
-    - Analyze the product.
+    - Analyze the product's actual, real-world utility.
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: ROTATE YOUR COMEDY STYLE. Based on the Random Seed, choose ONE of these 5 distinct vibes:
-        Vibe A: The "Delusional CEO" (acting like a billionaire just because you use the app).
-        Vibe B: The "Unsolicited Life Coach" (aggressively forcing your friends to use it).
-        Vibe C: The "Main Character" (acting dramatically superior to everyone else).
-        Vibe D: The "Financial Disaster" (justifying terrible spending habits because of the product).
-        Vibe E: The "Lazy Optimizer" (letting the app do all the work while you do nothing).
-    - Hook Rule 3: BANNED WORDS. You are STRICTLY FORBIDDEN from using the words "genius", "mastermind", "cheat code", "rizz", "fr fr", or "cooked". Show, don't tell. Be witty and fresh.
-    - Hook Rule 4: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
+    - Hook Rule 2: AUTHENTIC, RELATABLE WINS. Write about a realistic, genuine positive outcome from using the product. Focus on small daily victories, saving time, solving a real problem, or feeling good.
+    - Hook Rule 3: STRICTLY NO ABSURD LIES OR HYPERBOLE. Do NOT say you became a billionaire, bought a yacht, or cured a disease. Ground the text in everyday reality. (GOOD EXAMPLES: "finally hitting my protein goals without stressing thanks to ${brand}", "my morning runs feel amazing now that i switched to ${brand}").
+    - Hook Rule 4: NO CRINGE SLANG. (no "rizz", "fr fr", "cooked"). Keep it universally relatable.
+    - Hook Rule 5: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
     - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to heavily vary your selection).
-    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the chosen celebrity.
+    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the product context.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
     {
@@ -55,7 +51,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.25, // Extreme temperature to force high variety
+          temperature: 1.1, // Adjusted for creative realism
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -70,7 +66,7 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `me-using-${brand}-to-avoid-doing-real-work`;
+        const hook = aiLogic.videoBlueprint?.hook || `having-the-best-day-ever-thanks-to-${brand}`;
         const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
         const gifTerm = aiLogic.videoBlueprint?.gifCategory || "elon";
 

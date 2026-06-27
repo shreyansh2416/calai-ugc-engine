@@ -18,6 +18,7 @@ export default function StandaloneVideoPage() {
   const rawHook = searchParams?.get('h') || `me using ${brandName}`;
   const bgKey = (searchParams?.get('b') || "office") as string;
   const gifKey = (searchParams?.get('g') || "elon") as string;
+  const timestampParam = searchParams?.get('t') || "default"; // Added timestamp to force reactivity
 
   const hookText = rawHook.replace(/-/g, ' ');
 
@@ -26,27 +27,37 @@ export default function StandaloneVideoPage() {
       gym: [
         "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
         "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&q=80",
-        "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80"
+        "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80",
+        "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80",
+        "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80"
       ],
       kitchen: [
         "https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80",
         "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80",
-        "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80"
+        "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80",
+        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+        "https://images.unsplash.com/photo-1524859330668-c357331384f5?w=800&q=80"
       ],
       bedroom: [
         "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
         "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80",
-        "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80"
+        "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80",
+        "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800&q=80",
+        "https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&q=80"
       ],
       office: [
         "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
         "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80",
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80"
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80",
+        "https://images.unsplash.com/photo-1520607162513-3d70747a9f7d?w=800&q=80",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&q=80"
       ],
       store: [
         "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80",
         "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-        "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80"
+        "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80",
+        "https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=800&q=80",
+        "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&q=80"
       ]
     },
     stickers: {
@@ -73,9 +84,10 @@ export default function StandaloneVideoPage() {
     
     const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
 
+    setBgFailed(false);
     setVideoData({ bg: selectedBg, gif: selectedGif, audio: randomAudio });
     setIsLoaded(true);
-  }, [bgKey, gifKey]);
+  }, [bgKey, gifKey, timestampParam]); // Hooked to timestampParam to guarantee fresh load on new links
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = isMuted;
@@ -98,13 +110,10 @@ export default function StandaloneVideoPage() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[500px] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none" />
       
       <div className="relative p-[2px] rounded-[24px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_50px_rgba(139,92,246,0.2)] z-10">
-        
-        {/* PLAYER CONTAINER: Added a beautiful fallback gradient background */}
         <div 
           onClick={handlePlayToggle} 
-          className="relative w-[320px] h-[568px] sm:w-[360px] sm:h-[640px] bg-gradient-to-br from-zinc-800 to-black rounded-[22px] overflow-hidden cursor-pointer select-none"
+          className="relative w-[320px] h-[568px] sm:w-[360px] sm:h-[640px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-[22px] overflow-hidden cursor-pointer select-none"
         >
-          {/* BACKGROUND IMAGE: Uses proper <img> tag with onError to hide it if rate-limited, revealing the sleek gradient behind it */}
           {!bgFailed && (
             <img 
               src={videoData.bg} 

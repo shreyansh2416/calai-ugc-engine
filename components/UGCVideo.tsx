@@ -4,11 +4,11 @@ import React, { useRef, useState, useEffect } from 'react';
 
 export default function UGCPlayer({ videoState }: { videoState: any }) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const hasInitialized = useRef(false);
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [copyText, setCopyText] = useState("Copy Link");
+  const [bgFailed, setBgFailed] = useState(false);
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
@@ -19,7 +19,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     rawUrl: ""
   });
 
-  // MASSIVE ASSET DICTIONARY (25 Backgrounds, 15 Audio Tracks for infinite variety)
   const assetLibrary = {
     backgrounds: {
       gym: [
@@ -67,15 +66,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   };
 
   useEffect(() => {
-    if (hasInitialized.current) return;
-
     let rawUrl = "";
     if (typeof videoState === 'string' && videoState.includes('http')) rawUrl = videoState;
     else if (videoState && typeof videoState.url === 'string') rawUrl = videoState.url;
 
     if (rawUrl && (rawUrl.includes('/render/') || rawUrl.includes('/video/'))) {
-      hasInitialized.current = true;
-
       const urlObj = new URL(rawUrl);
       const brandName = urlObj.pathname.split('/').pop()?.toLowerCase() || "the app";
       
@@ -85,12 +80,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const bgKey = (urlObj.searchParams.get('b') || "office") as keyof typeof assetLibrary.backgrounds;
       const gifKey = (urlObj.searchParams.get('g') || "elon") as keyof typeof assetLibrary.stickers;
 
-      // Randomly select 1 of the 5 backgrounds in that category
+      // Because the component re-runs on every new videoState, this randomizer will properly execute every time!
       const bgArray = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.office;
       const selectedBg = bgArray[Math.floor(Math.random() * bgArray.length)];
       
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.elon;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
+
+      setBgFailed(false); // Reset fail state on new video
 
       setVideoData({ 
         brand: brandName, 
@@ -129,8 +126,18 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
       <div className="w-full flex flex-col items-center my-8" style={{ isolation: 'isolate' }}>
         <div className="relative p-[2px] rounded-[20px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_30px_rgba(139,92,246,0.2)]">
-          <div onClick={handlePlayToggle} className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-zinc-900 rounded-[18px] overflow-hidden cursor-pointer select-none">
-            <div className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat opacity-60 transition-all duration-500" style={{ backgroundImage: `url('${videoData.bg}')` }} />
+          <div onClick={handlePlayToggle} className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-[18px] overflow-hidden cursor-pointer select-none">
+            
+            {/* If Unsplash rate-limits, bgFailed becomes true, and the sleek slate background remains visible */}
+            {!bgFailed && (
+              <img 
+                src={videoData.bg} 
+                alt="" 
+                className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 opacity-60"
+                onError={() => setBgFailed(true)}
+              />
+            )}
+            
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>{videoData.text}</h3>
