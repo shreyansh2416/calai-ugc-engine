@@ -103,7 +103,7 @@ export default function StandaloneVideoPage() {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!bgFailed) {
       setBgFailed(true);
-      e.currentTarget.src = `https://loremflickr.com/800/1200/${videoData.bgCategory}?random=${Math.random()}`;
+      e.currentTarget.src = `https://picsum.photos/seed/${Math.random()}/400/800`;
     }
   };
 

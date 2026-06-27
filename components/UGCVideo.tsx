@@ -13,7 +13,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [videoData, setVideoData] = useState({
     brand: "the app",
     bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
-    bgCategory: "office", // Saved so the fallback knows what to search for
+    bgCategory: "office", 
     gif: "/stickers/elon.gif", 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "loading creative assets...",
@@ -87,7 +87,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.elon;
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
 
-      setBgFailed(false); // Reset fail state on new video load
+      setBgFailed(false);
 
       setVideoData({ 
         brand: brandName, 
@@ -117,11 +117,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     setTimeout(() => setCopyText("Copy Link"), 2000);
   };
 
-  // AUTO-HEALING FUNCTION: If Unsplash fails, grab a Flickr image of the exact same category
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!bgFailed) {
       setBgFailed(true);
-      e.currentTarget.src = `https://loremflickr.com/800/1200/${videoData.bgCategory}?random=${Math.random()}`;
+      // Swapped to Picsum with exact 400x800 dimensions to guarantee no letterboxing/black bars
+      e.currentTarget.src = `https://picsum.photos/seed/${Math.random()}/400/800`;
     }
   };
 
@@ -137,7 +137,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         <div className="relative p-[2px] rounded-[20px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_30px_rgba(139,92,246,0.2)]">
           <div onClick={handlePlayToggle} className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-[18px] overflow-hidden cursor-pointer select-none">
             
-            {/* The Auto-Healing Image Tag */}
             <img 
               src={videoData.bg} 
               alt="" 

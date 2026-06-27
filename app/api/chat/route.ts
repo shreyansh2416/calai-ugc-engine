@@ -12,24 +12,30 @@ export async function POST(req: Request) {
     const match = lastMsg.match(urlRegex);
     const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toLowerCase() : "the product";
 
+    // We use JS to force the AI to use a different meme format every single time
+    const memeFormats = [
+      `"POV: you finally started using ${brand}"`,
+      `"my FBI agent watching me obsessed with ${brand}"`,
+      `"me explaining to everyone why ${brand} is the best"`,
+      `"the urge to drop everything and use ${brand}"`,
+      `"how it feels to master ${brand}"`,
+      `"my bank account watching me buy more from ${brand}"`,
+      `"when someone asks how I did it so fast and my secret is ${brand}"`,
+      `"me acting like a genius because I use ${brand}"`
+    ];
     const randomSeed = Math.floor(Math.random() * 100000);
+    const forcedMeme = memeFormats[randomSeed % memeFormats.length];
 
-    const systemPrompt = `You are an elite UGC viral marketing director for TikTok and Reels.
+    const systemPrompt = `You are an elite UGC viral marketing director.
 
     MODE 1: CONVERSATION 
-    - Answer naturally, conversationally, and accurately. DO NOT pitch video generation unless asked.
+    - Answer naturally and accurately. DO NOT pitch video generation unless asked.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL)
     - Analyze the product.
-    - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: TRENDING TIKTOK MEME HUMOR. You MUST use one of these 5 trending TikTok text formats (or very close variations) that make the video highly relatable and funny:
-        1. "POV: you just found out about ${brand} and your life is forever changed"
-        2. "my fbi agent watching me spend another 3 hours on ${brand}"
-        3. "me trying to explain to my friends why ${brand} is the greatest thing ever"
-        4. "that urge to ignore all my responsibilities and just use ${brand}"
-        5. "how it feels to finally use ${brand} after struggling for so long"
-    - Hook Rule 3: DO NOT sound like a boring infomercial. DO NOT make up absurd lies (like buying a yacht). Make it sound like a funny, relatable internet meme.
-    - Hook Rule 4: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
+    - Hook Rule 1: You MUST write your hook based on this exact meme format: ${forcedMeme}
+    - Hook Rule 2: Adapt that format slightly to match the product's actual use case (e.g. tracking calories, watching videos, buying shoes). Keep it funny and relatable.
+    - Hook Rule 3: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
     - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to heavily vary your selection).
     - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the chosen celebrity and product.
     
@@ -55,7 +61,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.1, 
+          temperature: 0.9, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -70,7 +76,7 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `pov-you-just-discovered-${brand}`;
+        const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-like-a-pro`;
         const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
         const gifTerm = aiLogic.videoBlueprint?.gifCategory || "elon";
 
