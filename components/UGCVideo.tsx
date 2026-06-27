@@ -4,11 +4,13 @@ import React, { useRef, useState, useEffect } from 'react';
 
 export default function UGCPlayer({ videoState }: { videoState: any }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const progressInterval = useRef<any>(null);
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [copyText, setCopyText] = useState("Copy Link");
   const [bgFailed, setBgFailed] = useState(false);
+  const [progress, setProgress] = useState(0); // Track progress percentage (0 - 100)
   
   const [videoData, setVideoData] = useState({
     brand: "the app",
@@ -22,41 +24,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
 
   const assetLibrary = {
     backgrounds: {
-      gym: [
-        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
-        "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&q=80",
-        "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80",
-        "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80",
-        "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80"
-      ],
-      kitchen: [
-        "https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80",
-        "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80",
-        "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80",
-        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
-        "https://images.unsplash.com/photo-1524859330668-c357331384f5?w=800&q=80"
-      ],
-      bedroom: [
-        "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80",
-        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80",
-        "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80",
-        "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800&q=80",
-        "https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&q=80"
-      ],
-      office: [
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
-        "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80",
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80",
-        "https://images.unsplash.com/photo-1520607162513-3d70747a9f7d?w=800&q=80",
-        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&q=80"
-      ],
-      store: [
-        "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80",
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-        "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80",
-        "https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=800&q=80",
-        "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&q=80"
-      ]
+      gym: ["https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80", "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&q=80", "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80"],
+      kitchen: ["https://images.unsplash.com/photo-1556910103-1c02745a872f?w=800&q=80", "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&q=80", "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80"],
+      bedroom: ["https://images.unsplash.com/photo-1598550473950-575fb8629ba8?w=800&q=80", "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80", "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80"],
+      office: ["https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80"],
+      store: ["https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80", "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80", "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80"]
     },
     stickers: {
       cena: "/stickers/cena.gif", drake: "/stickers/drake.gif", elon: "/stickers/elon.gif",
@@ -88,6 +60,8 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const randomAudio = assetLibrary.audio[Math.floor(Math.random() * assetLibrary.audio.length)];
 
       setBgFailed(false);
+      setProgress(0);
+      setIsPlaying(false);
 
       setVideoData({ 
         brand: brandName, 
@@ -99,15 +73,31 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         rawUrl: rawUrl 
       });
     }
+    return () => clearInterval(progressInterval.current);
   }, [videoState]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = isMuted;
   }, [isMuted]);
 
+  const startTimeline = () => {
+    progressInterval.current = setInterval(() => {
+      setProgress((oldProgress) => {
+        if (oldProgress >= 100) return 0; // Seamless video loops back around
+        return oldProgress + 1.4; // Steps smoothly over a targeted ~7s duration
+      });
+    }, 100);
+  };
+
   const handlePlayToggle = () => {
     if (!audioRef.current) return;
-    isPlaying ? audioRef.current.pause() : audioRef.current.play().catch(e => console.log(e));
+    if (isPlaying) {
+      audioRef.current.pause();
+      clearInterval(progressInterval.current);
+    } else {
+      audioRef.current.play().catch(e => console.log(e));
+      startTimeline();
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -120,7 +110,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!bgFailed) {
       setBgFailed(true);
-      // Swapped to Picsum with exact 400x800 dimensions to guarantee no letterboxing/black bars
       e.currentTarget.src = `https://picsum.photos/seed/${Math.random()}/400/800`;
     }
   };
@@ -144,13 +133,21 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
               onError={handleImageError}
             />
             
-            <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
+            <audio ref={audioRef} src={videoData.audio} loop onEnded={() => setProgress(0)} />
+            
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>{videoData.text}</h3>
             </div>
+            
             <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
               <img src={videoData.gif} alt="" className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" />
             </div>
+
+            {/* NATIVE PROGRESS TIMELINE TRACKER LAYER */}
+            <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-white/20 z-[40]">
+              <div className="h-full bg-purple-500 transition-all duration-100 ease-linear" style={{ width: `${progress}%` }} />
+            </div>
+
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity z-[30]">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
