@@ -16,8 +16,8 @@ export async function POST(req: Request) {
       const rawDomain = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
       const brand = rawDomain.toUpperCase();
       
-      let themeId = 4; // Default to Tech/Gaming
-      let hook = `BRO-THIS-APP-IS-LITERALLY-A-CHEAT-CODE`;
+      let themeId = 4;
+      let hook = `LITERAL-CHEAT-CODE-FOR-${brand}-FR`;
 
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             temperature: 1.1,
-            response_format: { type: "json_object" }, // Forces strict JSON output
+            response_format: { type: "json_object" },
             messages: [{ 
               role: 'system', 
               content: `You are a viral Gen-Z TikTok marketing director. Analyze this product context: "${lastMsg}".
@@ -39,9 +39,11 @@ export async function POST(req: Request) {
               5 = Fitness/Sports/Gym
               
               TASK 2: Write ONE highly relatable, incredibly clever 6-10 word text hook for a video ad.
+              CRITICAL RULES:
+              - YOU MUST INCLUDE THE EXACT BRAND NAME "${brand}" IN THE TEXT. THIS IS MANDATORY.
               - DO NOT use the word "I" or start with "I".
               - Use Gen-Z slang (e.g., W rizz, literally, fr, gatekeeping).
-              - Replace EVERY SINGLE SPACE with a hyphen (-). Example: Literal-cheat-code-for-my-life
+              - Replace EVERY SINGLE SPACE with a hyphen (-). Example: This-feature-on-Nike-is-literally-insane
               
               Output strictly as JSON: {"themeId": number, "hook": "string"}` 
             }]
@@ -55,15 +57,15 @@ export async function POST(req: Request) {
         }
       } catch (e) { console.error("Groq JSON generation failed."); }
 
-      // Decouple audio to ensure it's always unique, even if the theme is the same
-      const audioId = Math.floor(Math.random() * 5) + 1;
+      // Expanded Audio Pool Randomizer (1 through 10) to prevent repeating music
+      const audioId = Math.floor(Math.random() * 10) + 1;
       
       const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&a=${audioId}&h=${hook}`;
       responseText = `I've analyzed the site and organized the creative assets based on the product. Check out the generated clip here:\n${url}`;
     } 
     
     // ==========================================
-    // ROUTE B: NATURAL CHAT (OpenAI Style)
+    // ROUTE B: NATURAL CHAT
     // ==========================================
     else {
       try {
