@@ -9,23 +9,15 @@ export async function POST(req: Request) {
 
     let responseText = "";
 
+    // ==========================================
+    // ROUTE A: SEMANTIC UGC GENERATION
+    // ==========================================
     if (match) {
       const rawDomain = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
       const brand = rawDomain.toUpperCase();
       
-      // DECOUPLED RANDOMIZATION: All elements are completely independent now
-      const bgId = Math.floor(Math.random() * 5);
-      const gifId = Math.floor(Math.random() * 5);
-      const audioId = Math.floor(Math.random() * 5);
-      
-      let hook = `LITERAL-CHEAT-CODE-FOR-${brand}-FR`;
-
-      const personas = [
-        "a toxic TikToker who overhypes everything",
-        "a hustle-culture tech bro dropping a life hack",
-        "an aesthetic vlogger giving secret advice"
-      ];
-      const selectedPersona = personas[Math.floor(Math.random() * personas.length)];
+      let themeId = 4; // Default to Tech/Gaming
+      let hook = `BRO-THIS-APP-IS-LITERALLY-A-CHEAT-CODE`;
 
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -33,29 +25,46 @@ export async function POST(req: Request) {
           headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
-            temperature: 1.3, // Maximum creativity
+            temperature: 1.1,
+            response_format: { type: "json_object" }, // Forces strict JSON output
             messages: [{ 
               role: 'system', 
-              content: `You are ${selectedPersona}. Analyze this product: "${lastMsg}".
-              Write ONE highly relatable, super trendy 6-10 word text hook about using this product. 
-              RULES:
-              - DO NOT START WITH "I" OR USE THE WORD "I".
-              - Vary your words. Make it sound like a viral Gen-Z TikTok meme.
-              - Replace EVERY SINGLE SPACE with a hyphen (-). Example: Bro-this-app-is-literally-insane
-              - NO punctuation or emojis.` 
+              content: `You are a viral Gen-Z TikTok marketing director. Analyze this product context: "${lastMsg}".
+              
+              TASK 1: Categorize the product to choose a theme ID:
+              1 = Food/Diet/Eating
+              2 = Studying/Working/Productivity
+              3 = Cooking/Home/Lifestyle
+              4 = Gaming/Tech/Software
+              5 = Fitness/Sports/Gym
+              
+              TASK 2: Write ONE highly relatable, incredibly clever 6-10 word text hook for a video ad.
+              - DO NOT use the word "I" or start with "I".
+              - Use Gen-Z slang (e.g., W rizz, literally, fr, gatekeeping).
+              - Replace EVERY SINGLE SPACE with a hyphen (-). Example: Literal-cheat-code-for-my-life
+              
+              Output strictly as JSON: {"themeId": number, "hook": "string"}` 
             }]
           })
         });
         const data = await groqRes.json();
         if (data.choices && data.choices[0].message.content) {
-          hook = data.choices[0].message.content.trim().replace(/^"|"$/g, '');
+          const parsed = JSON.parse(data.choices[0].message.content);
+          themeId = parsed.themeId || Math.floor(Math.random() * 5) + 1;
+          hook = parsed.hook || hook;
         }
-      } catch (e) { console.error("Groq generation failed."); }
+      } catch (e) { console.error("Groq JSON generation failed."); }
 
-      // Ultra-short URL with decoupled parameters
-      const url = `https://ugc-engine.app/render/${brand}?b=${bgId}&g=${gifId}&a=${audioId}&h=${hook}`;
-      responseText = `I've analyzed the site and organized the creative assets. Check out the generated clip here:\n${url}`;
+      // Decouple audio to ensure it's always unique, even if the theme is the same
+      const audioId = Math.floor(Math.random() * 5) + 1;
+      
+      const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&a=${audioId}&h=${hook}`;
+      responseText = `I've analyzed the site and organized the creative assets based on the product. Check out the generated clip here:\n${url}`;
     } 
+    
+    // ==========================================
+    // ROUTE B: NATURAL CHAT (OpenAI Style)
+    // ==========================================
     else {
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {

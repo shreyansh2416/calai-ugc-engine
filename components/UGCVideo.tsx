@@ -12,38 +12,22 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800",
-    gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif",
+    bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
+    gif: "https://media.giphy.com/media/Mhwkr651ANpjJY3xNt/giphy.gif",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "LITERAL CHEAT CODE FOR AUTOMATION"
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
-  // INDEPENDENT ASSET ARRAYS
-  const backgrounds = [
-    "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800", // Studio
-    "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800", // Gym
-    "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800", // Gaming
-    "https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=800", // Kitchen
-    "https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=800"  // Office
-  ];
-
-  const gifs = [
-    "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif", // Drake
-    "https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif",    // Rock
-    "https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif", // Speed
-    "https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif", // Shaq
-    "https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif"   // Kevin Hart
-  ];
-
-  const audios = [
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
-  ];
+  // Unique Audio Pool
+  const audios: Record<number, string> = {
+    1: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    2: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    3: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    4: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    5: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+  };
 
   useEffect(() => {
     let rawUrl = "";
@@ -54,19 +38,44 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const urlObj = new URL(rawUrl);
       const brandName = rawUrl.split('/').pop()?.split('?')[0] || "THE APP";
       
-      const bId = parseInt(urlObj.searchParams.get('b') || "0");
-      const gId = parseInt(urlObj.searchParams.get('g') || "0");
-      const aId = parseInt(urlObj.searchParams.get('a') || "0");
+      const themeId = parseInt(urlObj.searchParams.get('t') || "4");
+      const audioId = parseInt(urlObj.searchParams.get('a') || "1");
       
       const rawHook = urlObj.searchParams.get('h') || `BRO-THIS-IS-INSANE`;
       const hookText = rawHook.replace(/-/g, ' ');
 
+      // STRICT SEMANTIC MATCHING: Background explicitly matches the GIF's activity
+      const themes: Record<number, any> = {
+        1: { // Food/Eating -> Shaq Eating + Dining Table
+          bg: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800",
+          gif: "https://media.giphy.com/media/1wXdllYv2D0Q/giphy.gif"
+        },
+        2: { // Studying/Work -> Drake Laptop + Study Room/Library
+          bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800",
+          gif: "https://media.giphy.com/media/800iiDTaNNFOwytONV/giphy.gif"
+        },
+        3: { // Cooking/Home -> Gordon Ramsay + Kitchen
+          bg: "https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=800",
+          gif: "https://media.giphy.com/media/103t71VKmtY1UY/giphy.gif"
+        },
+        4: { // Gaming/Tech -> IShowSpeed + RGB Gaming Room
+          bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
+          gif: "https://media.giphy.com/media/Mhwkr651ANpjJY3xNt/giphy.gif"
+        },
+        5: { // Fitness/Gym -> The Rock + Gym/Locker Room
+          bg: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800",
+          gif: "https://media.giphy.com/media/14smAwp2uHM3Di/giphy.gif"
+        }
+      };
+
+      const selectedTheme = themes[themeId] || themes[4];
+      
       setVideoData({ 
         brand: brandName, 
         text: hookText, 
-        bg: backgrounds[bId] || backgrounds[0],
-        gif: gifs[gId] || gifs[0],
-        audio: audios[aId] || audios[0]
+        bg: selectedTheme.bg,
+        gif: selectedTheme.gif,
+        audio: audios[audioId] || audios[1]
       });
     }
   }, [videoState]);
@@ -98,7 +107,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       {/* GLOBAL OPENAI CHAT FONT OVERRIDE */}
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body, p, span, div {
+        body, p, span, div, input, button {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
         }
       `}} />
@@ -111,12 +120,14 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             onClick={handlePlayToggle}
             className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-[#111] rounded-[18px] overflow-hidden cursor-pointer select-none"
           >
-            {/* BACKGROUND LAYER: CSS Background prevents broken image icons */}
-            <div 
-              className="absolute inset-0 w-full h-full opacity-40 mix-blend-luminosity filter contrast-125 bg-cover bg-center"
-              style={{ backgroundImage: `url(${videoData.bg})` }}
+            {/* BACKGROUND */}
+            <img 
+              src={videoData.bg} 
+              alt="" 
+              className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity filter contrast-125 pointer-events-none" 
             />
             
+            {/* BASE VIDEO */}
             <video 
               ref={videoRef} 
               src={baseVideo} 
@@ -129,11 +140,15 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* CELEBRITY GIF LAYER: CSS Background ensures it fails invisibly if adblocker blocks it */}
-            <div 
-              className="absolute inset-x-0 bottom-24 h-[220px] bg-bottom bg-no-repeat bg-contain z-[2] drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]"
-              style={{ backgroundImage: `url(${videoData.gif})` }}
-            />
+            {/* CELEBRITY GIF (Rendered as an IMG tag to guarantee visibility) */}
+            <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none z-[2]">
+              <img 
+                src={videoData.gif} 
+                alt="Reaction" 
+                className="w-[200px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.9)]" 
+                onError={(e) => e.currentTarget.style.display = 'none'}
+              />
+            </div>
 
             {/* TRENDY TEXT */}
             <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
