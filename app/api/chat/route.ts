@@ -11,27 +11,29 @@ export async function POST(req: Request) {
 
     const randomSeed = Math.floor(Math.random() * 100000);
 
-    const systemPrompt = `You are an elite, highly clever UGC viral marketing director. You have TWO distinct modes.
+    const systemPrompt = `You are a highly clever UGC (User Generated Content) video director for TikTok/Reels. You have TWO distinct modes.
 
     MODE 1: CONVERSATION (If user says "hi" or asks a general question)
-    - Answer naturally and accurately. DO NOT use hyphens. DO NOT pitch your video generation unless asked.
+    - Answer naturally, conversationally, and warmly like ChatGPT. DO NOT use hyphens. DO NOT pitch your video generation unless asked "what can you do?".
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
-    - Analyze the product's actual value and utility.
+    - Analyze the product's actual use case (e.g., Nike = shoes/spending, CalAI = tracking macros/diet, YouTube = getting distracted).
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: POSITIVE, "CHEAT CODE" HUMOR. Write a clever, trendy TikTok caption about succeeding, feeling like a genius, or having a massive advantage because of the product. 
-    - Hook Rule 3: DO NOT make the user sound foolish, lazy, or stupid. (GOOD Examples: "me unlocking 100% of my brain power using ${brand}", "when they ask how i did it so fast but my secret is just ${brand}", "my boss wondering how i finished a week of work in 2 hours using ${brand}").
+    - Hook Rule 2: Use clever, trending TikTok humor. ROTATE BETWEEN THESE 3 STYLES:
+        1. "POV: you just discovered ${brand} and now you act better than everyone else"
+        2. "me trying to force all my friends to use ${brand} because it literally changed my life"
+        3. "my bank account watching me ignore it completely to use ${brand} again"
+    - Hook Rule 3: NEVER use forced slang (no "rizz", "fr fr", "cooked"). Keep it universally funny and relatable.
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
     - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to shuffle your choice).
-    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". 
-    - COHESION RULE: The bgCategory MUST logically match the gifCategory. (e.g., gordon MUST be in the kitchen, ronaldo/rock/cena MUST be in the gym, elon MUST be in the office).
+    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the product.
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text (only if intent is chat)",
       "videoBlueprint": {
-        "hook": "hyphenated-witty-success-caption",
+        "hook": "hyphenated-witty-tiktok-caption",
         "bgCategory": "office",
         "gifCategory": "elon"
       }
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.1, // Forces creative, non-repetitive text
+          temperature: 0.9, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -60,11 +62,12 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `me-unlocking-100-percent-of-my-brain-using-${brand}`;
-        const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
-        const gifTerm = aiLogic.videoBlueprint?.gifCategory || "elon";
+        const hook = aiLogic.videoBlueprint?.hook || `me-ignoring-all-my-problems-to-use-${brand}`;
+        const bgTerm = aiLogic.videoBlueprint?.bgCategory || "bedroom";
+        const gifTerm = aiLogic.videoBlueprint?.gifCategory || "drake";
 
-        const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}&t=${Date.now()}`;
+        // Changed from a fake domain to a clean localhost/relative path URL to prevent DNS errors
+        const url = `http://localhost:3000/video/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}&t=${Date.now()}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
