@@ -10,20 +10,16 @@ export async function POST(req: Request) {
     let responseText = "";
 
     // ==========================================
-    // ROUTE A: UGC GENERATION (Flawless Gen-Z Hooks)
+    // ROUTE A: UGC GENERATION (Flawless Hooks)
     // ==========================================
     if (match) {
-      const brand = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase();
+      const rawDomain = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
+      const brand = rawDomain.toUpperCase();
       
-      // Cycle through 5 distinct themes (1: Drake, 2: The Rock, 3: IShowSpeed, 4: Shaq, 5: Kevin Hart)
       const themeId = Math.floor(Math.random() * 5) + 1;
-      const celebs = ["Drake", "The Rock", "IShowSpeed", "Shaq", "Kevin Hart"];
-      const currentCeleb = celebs[themeId - 1];
-
-      let hook = `POV: YOU FINALLY STOPPED GATEKEEPING ${brand} 💀`;
+      let hook = `POV YOU FINALLY STOPPED GATEKEEPING ${brand}`;
 
       try {
-        // Native Fetch to Groq (Bypasses all Vercel SDK crashes)
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
@@ -31,7 +27,12 @@ export async function POST(req: Request) {
             model: 'llama-3.3-70b-versatile',
             messages: [{ 
               role: 'system', 
-              content: `You are a witty, unhinged Gen-Z marketing director. Write a clever, funny, highly relatable 10 to 15 word text overlay for a video about ${brand}. The video features ${currentCeleb}. Make it sound like a viral TikTok meme. DO NOT use quotes or hashtags.` 
+              content: `You are a witty, unhinged Gen-Z marketing director. Write a clever, highly relatable 8 to 12 word TikTok text hook about this product: ${brand}. 
+              CRITICAL RULES:
+              - DO NOT mention any celebrities.
+              - DO NOT output wrong facts.
+              - DO NOT use quotes, emojis, or punctuation.
+              - Keep it strictly about the user's POV of using the product.` 
             }]
           })
         });
@@ -41,13 +42,14 @@ export async function POST(req: Request) {
         }
       } catch (e) { console.error("Groq text generation failed, using fallback."); }
 
-      // Ultra-short URL prevents cutting off data
       const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&h=${encodeURIComponent(hook)}`;
-      responseText = `I've analyzed the site and organized a custom UGC layout for you. Check out the generated clip here: ${url}`;
+      
+      // FIX: Markdown link formatting completely stops text box overflow
+      responseText = `I've analyzed the site and organized a custom layout for you. \n\n👉 [Click here to view your generated UGC clip](${url})`;
     } 
     
     // ==========================================
-    // ROUTE B: NATURAL SMALL TALK (No `...` Hangs)
+    // ROUTE B: NATURAL SMALL TALK
     // ==========================================
     else {
       try {
@@ -70,15 +72,15 @@ export async function POST(req: Request) {
     }
 
     // ==========================================
-    // UNIVERSAL LOCAL STREAMER
+    // LOCAL STREAMER
     // ==========================================
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         const words = responseText.split(' ');
         for (let i = 0; i < words.length; i++) {
-          controller.enqueue(encoder.encode(words[i] + ' '));
-          await new Promise(resolve => setTimeout(resolve, 30)); 
+          controller.enqueue(encoder.encode(words[i] + (i === words.length - 1 ? '' : ' ')));
+          await new Promise(resolve => setTimeout(resolve, 25)); 
         }
         controller.close();
       },
