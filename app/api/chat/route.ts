@@ -15,26 +15,22 @@ export async function POST(req: Request) {
     - Answer naturally and accurately. DO NOT use hyphens. DO NOT pitch your video generation unless asked.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
-    - Analyze the product (e.g., Nike = shoes, CalAI = tracking macros/diet, YouTube = getting distracted).
+    - Analyze the product's actual use case (e.g., Nike = buying expensive shoes, CalAI = tracking macros/diet, YouTube = getting distracted/binging).
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: ROTATE BETWEEN THESE 4 JOKE STYLES for variety:
-        1. "me realizing i can use ${brand} to..."
-        2. "my fbi agent watching me open ${brand} again..."
-        3. "how i sleep knowing ${brand} handles my..."
-        4. "when everyone asks how i did it but it was just ${brand}..."
-    - Hook Rule 3: NEVER use the phrase "not even mad" or "not even sorry". Make the jokes unique!
+    - Hook Rule 2: Use sensible, relatable, self-deprecating humor. (Examples: "my bank account watching me open nike.com at 2am", "me acting like i know my macros so i just let calai handle it", "telling myself i'll only watch one video on youtube").
+    - Hook Rule 3: ABSOLUTELY NO CRINGE SLANG. Do not use "rizz", "fr fr", "cooked", or "nemesis". Make it sound like a normal, funny person.
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
-    - gifSearchTerm: CHOOSE EXACTLY ONE FROM THIS LIST ONLY: "drake", "the-rock", "shaq", "kevin-hart", "spongebob". (Do not add actions or extra words).
-    - bgSearchTerm: A highly specific room that logically matches the product (e.g., "luxury-gym-weights", "modern-kitchen-island", "messy-gaming-bedroom"). Replace spaces with hyphens.
+    - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob".
+    - bgCategory: CHOOSE EXACTLY ONE that matches the product: "gym", "kitchen", "bedroom", "office", "store".
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text (only if intent is chat)",
       "videoBlueprint": {
-        "hook": "hyphenated-tiktok-caption-with-brand",
-        "bgSearchTerm": "luxury-kitchen",
-        "gifSearchTerm": "the-rock"
+        "hook": "hyphenated-witty-tiktok-caption",
+        "bgCategory": "kitchen",
+        "gifCategory": "rock"
       }
     }`;
 
@@ -46,7 +42,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.9, 
+          temperature: 0.8, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -61,16 +57,16 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `me-using-${brand}`;
-        const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "modern-living-room";
-        const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "the-rock";
+        const hook = aiLogic.videoBlueprint?.hook || `me-using-${brand}-at-2am`;
+        const bgTerm = aiLogic.videoBlueprint?.bgCategory || "bedroom";
+        const gifTerm = aiLogic.videoBlueprint?.gifCategory || "drake";
 
         const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
       console.error("Groq Engine Error:", e);
-      responseText = "I'm having a quick connection hiccup, but I'm ready to chat or generate videos!";
+      responseText = "I'm having a connection hiccup, but I'm ready to chat or generate videos!";
     }
 
     const encoder = new TextEncoder();
