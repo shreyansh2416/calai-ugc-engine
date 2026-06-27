@@ -8,18 +8,16 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [copyText, setCopyText] = useState("Copy");
-  const [downloadText, setDownloadText] = useState("Download");
+  const [shareText, setShareText] = useState("Share Link");
   
   const [videoData, setVideoData] = useState({
     brand: "THE APP",
-    bg: "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800",
-    gif: "https://media.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif",
+    bg: "https://picsum.photos/seed/drake/800/1200",
+    gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif",
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     text: "LITERAL CHEAT CODE FOR AUTOMATION"
   });
 
-  // FIX: This specific GitHub CDN allows CORS, meaning the Download button will actually download the file directly!
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
 
   useEffect(() => {
@@ -31,44 +29,36 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const urlObj = new URL(rawUrl);
       const brandName = rawUrl.split('/').pop()?.split('?')[0] || "THE APP";
       const themeId = parseInt(urlObj.searchParams.get('t') || "1");
+      
+      // Parse the AI hook and replace underscores back with spaces
+      const rawHook = urlObj.searchParams.get('h') || `LITERAL_CHEAT_CODE_FOR_${brandName}`;
+      const hookText = rawHook.replace(/_/g, ' ');
 
-      // Dynamic, highly varied Gen-Z hooks
-      const hookVariations = [
-        `LITERAL CHEAT CODE FOR USING ${brandName} 💀`,
-        `BRO FINALLY STOPPED GATEKEEPING ${brandName} 😭`,
-        `ME WATCHING EVERYONE STRUGGLE WITHOUT ${brandName} 🗿`,
-        `ACTUAL REACTION TO ${brandName} DROPPING THIS 🔥`,
-        `HOW IT FEELS TO AUTOMATE WITH ${brandName} 🚀`,
-        `NO WAY ${brandName} JUST DID THAT 🤯`,
-        `${brandName} IS CARRYING MY ENTIRE LIFE RN 💀`
-      ];
-      const randomHook = hookVariations[Math.floor(Math.random() * hookVariations.length)];
-
-      // 5 Guaranteed Celebrity Themes with distinct Audio Tracks
+      // 5 GUARANTEED THEMES: Tenor GIFs and Picsum Seeds (Zero Hotlink Blocking)
       const themes: Record<number, any> = {
-        1: { // Drake
-          bg: "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800",
-          gif: "https://media.giphy.com/media/8a6Q4kO7pBwAAAAi/giphy.gif",
+        1: { // Drake (Smug/Approving)
+          bg: "https://picsum.photos/seed/drake/800/1200",
+          gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
         },
-        2: { // The Rock
-          bg: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800",
-          gif: "https://media.giphy.com/media/1OcbvYyS13UAAAAi/giphy.gif",
+        2: { // The Rock (Suspicious)
+          bg: "https://picsum.photos/seed/rock/800/1200",
+          gif: "https://media.tenor.com/1OcbvYyS13UAAAAi/the-rock-sus.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
         },
-        3: { // IShowSpeed
-          bg: "https://images.unsplash.com/photo-1598550473950-575fb8629ba8?q=80&w=800",
-          gif: "https://media.giphy.com/media/L-qQf_iKkQ4AAAAi/giphy.gif",
+        3: { // IShowSpeed (Rage)
+          bg: "https://picsum.photos/seed/speed/800/1200",
+          gif: "https://media.tenor.com/L-qQf_iKkQ4AAAAi/ishowspeed-speed.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
         },
-        4: { // Shaq
-          bg: "https://images.unsplash.com/photo-1556910103-1c02745a872f?q=80&w=800",
-          gif: "https://media.giphy.com/media/3oEdv5S8Th6b9gsNqM/giphy.gif",
+        4: { // Shaq (Vibing)
+          bg: "https://picsum.photos/seed/shaq/800/1200",
+          gif: "https://media.tenor.com/qLhVn0B_n_kAAAAi/shaq-shaquille-o-neal.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
         },
-        5: { // Kevin Hart
-          bg: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=800",
-          gif: "https://media.giphy.com/media/3o7TKr3nzbh5WgCFxe/giphy.gif",
+        5: { // Kevin Hart (Calculating/Confused)
+          bg: "https://picsum.photos/seed/kevin/800/1200",
+          gif: "https://media.tenor.com/3Gv2x_BovI4AAAAi/math-calculate.gif",
           audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
         }
       };
@@ -77,7 +67,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       
       setVideoData({ 
         brand: brandName, 
-        text: randomHook, 
+        text: hookText, 
         ...selectedTheme 
       });
     }
@@ -99,34 +89,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     setIsPlaying(!isPlaying);
   };
 
-  const handleCopy = () => {
+  const handleShare = () => {
     navigator.clipboard.writeText(`https://ugc-engine.app/shared/${videoData.brand.toLowerCase()}`);
-    setCopyText("Copied!");
-    setTimeout(() => setCopyText("Copy"), 2000);
-  };
-
-  // True Downloader: Thanks to the GitHub Raw URL, this blob fetch will succeed without AccessDenied errors.
-  const handleDownload = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setDownloadText("Wait...");
-    try {
-      const response = await fetch(baseVideo);
-      if (!response.ok) throw new Error("Network error");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `UGC_${videoData.brand}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      setDownloadText("Done!");
-    } catch (error) {
-      window.open(baseVideo, '_blank');
-      setDownloadText("Failed");
-    }
-    setTimeout(() => setDownloadText("Download"), 2000);
+    setShareText("Link Copied!");
+    setTimeout(() => setShareText("Share Link"), 2000);
   };
 
   return (
@@ -136,12 +102,12 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         onClick={handlePlayToggle}
         className="relative w-[280px] h-[496px] sm:w-[320px] sm:h-[568px] bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 cursor-pointer select-none group"
       >
-        {/* FIX: referrerPolicy="no-referrer" bypasses Unsplash strict image blocking */}
+        {/* Removed alt text so broken images are entirely invisible if network fails */}
         <img 
           src={videoData.bg} 
-          alt="Environment" 
-          referrerPolicy="no-referrer"
-          className="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none" 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none" 
+          onError={(e) => e.currentTarget.style.display = 'none'} 
         />
         
         <video 
@@ -157,17 +123,16 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
         <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-[2] pb-20">
-          {/* FIX: referrerPolicy="no-referrer" bypasses Giphy's hotlink blocking */}
           <img 
             src={videoData.gif} 
-            alt="Celebrity Meme" 
-            referrerPolicy="no-referrer"
+            alt="" 
             className="w-[190px] h-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,1)]" 
+            onError={(e) => e.currentTarget.style.display = 'none'}
           />
         </div>
 
         <div className="absolute top-12 left-0 right-0 px-6 text-center pointer-events-none z-[3]">
-          <h3 className="text-white text-[22px] leading-[1.15] font-black uppercase tracking-wide drop-shadow-[0_6px_10px_rgba(0,0,0,1)] text-stroke" style={{ wordBreak: 'break-word' }}>
+          <h3 className="text-white text-[20px] sm:text-[22px] leading-[1.15] font-black uppercase tracking-wide drop-shadow-[0_6px_10px_rgba(0,0,0,1)] text-stroke" style={{ wordBreak: 'break-word' }}>
             {videoData.text}
           </h3>
         </div>
@@ -181,7 +146,8 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
         )}
       </div>
 
-      <div className="flex w-[280px] sm:w-[320px] justify-between gap-2 mt-4">
+      {/* POLISHED ACTION BAR */}
+      <div className="flex w-[280px] sm:w-[320px] justify-between gap-3 mt-4">
         <button onClick={() => setIsMuted(!isMuted)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs sm:text-sm font-semibold py-3 rounded-xl transition shadow-lg border border-zinc-700 flex justify-center items-center gap-2">
           {isMuted ? (
              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
@@ -191,14 +157,9 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           {isMuted ? "Unmute" : "Mute"}
         </button>
 
-        <button onClick={handleCopy} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs sm:text-sm font-semibold py-3 rounded-xl transition shadow-lg border border-zinc-700 flex justify-center items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-          {copyText}
-        </button>
-        
-        <button onClick={handleDownload} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold py-3 rounded-xl transition shadow-lg border border-blue-500 flex justify-center items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          {downloadText}
+        <button onClick={handleShare} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold py-3 rounded-xl transition shadow-lg border border-blue-500 flex justify-center items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+          {shareText}
         </button>
       </div>
 

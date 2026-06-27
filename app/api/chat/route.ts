@@ -5,29 +5,54 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    // Look for URLs
     const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
     const match = lastMsg.match(urlRegex);
 
     let responseText = "";
 
     // ==========================================
-    // ROUTE A: UGC GENERATION (Ultra-Short URL to prevent overflow)
+    // ROUTE A: UGC GENERATION (Context-Aware)
     // ==========================================
     if (match) {
       const rawDomain = match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0];
       const brand = rawDomain.toUpperCase();
       
-      // Randomly select a theme ID (1 through 5)
       const themeId = Math.floor(Math.random() * 5) + 1;
-      
-      // The URL is now extremely short to perfectly fit inside your chat UI
-      const url = `https://ugc-engine.app/render/${brand}?t=${themeId}`;
-      responseText = `I've organized the creative assets for you. Check out the generated UGC clip here: \n${url}`;
+      let hook = `LITERAL_CHEAT_CODE_FOR_${brand}`;
+
+      try {
+        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ 
+              role: 'system', 
+              content: `You are an unhinged Gen-Z marketing director. 
+              Analyze this brand/product context from the user: "${lastMsg}".
+              Deduce what the product does. Write a 6 to 10 word TikTok text hook specifically about using this product. 
+              RULES:
+              - DO NOT use the word "I".
+              - Use Gen-Z slang (e.g., cheat code, gatekeeping, bro, literal).
+              - NO spaces. Replace all spaces with underscores (e.g., Bro_this_app_is_insane).
+              - NO punctuation, quotes, or hashtags.
+              - Focus on what the product actually does.` 
+            }]
+          })
+        });
+        const data = await groqRes.json();
+        if (data.choices && data.choices[0].message.content) {
+          hook = data.choices[0].message.content.trim().replace(/^"|"$/g, '');
+        }
+      } catch (e) { console.error("Groq generation failed."); }
+
+      // Underscores allow the browser to break the text cleanly so it doesn't overflow
+      const url = `https://ugc-engine.app/render/${brand}?t=${themeId}&h=${hook}`;
+      responseText = `I've analyzed the site and organized the creative assets for you. Check out the generated clip here:\n${url}`;
     } 
     
     // ==========================================
-    // ROUTE B: UNRESTRICTED SMALL TALK
+    // ROUTE B: NATURAL SMALL TALK
     // ==========================================
     else {
       try {
@@ -39,9 +64,7 @@ export async function POST(req: Request) {
             messages: [
               { 
                 role: 'system', 
-                content: `You are a highly intelligent, conversational AI assistant. 
-                Answer all questions (like weather, facts, coding, or casual chat) naturally and accurately. 
-                CRITICAL RULE: DO NOT talk about generating videos UNLESS the user explicitly asks what you do.` 
+                content: `You are a helpful AI assistant. Answer general questions naturally. DO NOT mention that you generate UGC videos UNLESS explicitly asked.` 
               },
               ...messages.map((m: any) => ({ role: m.role, content: m.content })).slice(-4)
             ]
@@ -50,11 +73,10 @@ export async function POST(req: Request) {
         const data = await groqRes.json();
         responseText = data.choices[0].message.content;
       } catch (e) {
-        responseText = "I'm having a slight connection hiccup to my servers, but I'm here!";
+        responseText = "I'm having a minor connection hiccup, but I'm ready to chat or generate videos!";
       }
     }
 
-    // Smooth Typing Streamer
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
