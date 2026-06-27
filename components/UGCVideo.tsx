@@ -12,11 +12,11 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const [bgLoaded, setBgLoaded] = useState(false);
   
   const [videoData, setVideoData] = useState({
-    brand: "THE APP",
-    bg: "https://image.pollinations.ai/prompt/modern%20office?width=800&height=1200&nologo=true",
-    gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif", 
+    brand: "the app",
+    bg: "https://image.pollinations.ai/prompt/modern%20living%20room?width=800&height=1200&nologo=true",
+    gif: "/api/proxy?url=" + encodeURIComponent("https://media.giphy.com/media/26FPOvJzkuh3S/giphy.gif"), 
     audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    text: "LOADING CREATIVE ASSETS..."
+    text: "loading creative assets..."
   });
 
   const baseVideo = "https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4";
@@ -27,11 +27,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     3: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
     4: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
     5: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-    6: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-    7: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",
-    8: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3",
-    9: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",
-    10: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    6: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
   };
 
   useEffect(() => {
@@ -43,43 +39,41 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       setBgLoaded(false);
 
       const urlObj = new URL(rawUrl);
-      const brandName = rawUrl.split('/').pop()?.split('?')[0] || "THE APP";
+      const brandName = urlObj.pathname.split('/').pop()?.toLowerCase() || "the app";
       
-      const rawHook = urlObj.searchParams.get('h') || `POV:-USING-${brandName}`;
-      const bgSearchTerm = urlObj.searchParams.get('b') || "modern-office";
-      const gifSearchTerm = urlObj.searchParams.get('g') || "drake-computer";
+      const rawHook = urlObj.searchParams.get('h') || `me using ${brandName}`;
+      const bgSearchTerm = urlObj.searchParams.get('b') || "modern-living-room";
+      const gifSearchTerm = urlObj.searchParams.get('g') || "the-rock";
 
       const hookText = rawHook.replace(/-/g, ' ');
-      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " photorealistic lighting empty room"; 
+      const cleanBgQuery = bgSearchTerm.replace(/-/g, ' ') + " high quality interior photography"; 
       const cleanGifQuery = gifSearchTerm.replace(/-/g, ' ');
 
       const dynamicBg = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanBgQuery)}?width=800&height=1200&nologo=true`;
-      const randomAudio = audios[Math.floor(Math.random() * 10) + 1];
+      const randomAudio = audios[Math.floor(Math.random() * 6) + 1];
 
       setVideoData(prev => ({ 
         ...prev, 
         brand: brandName, 
-        text: hookText, 
+        text: hookText.toLowerCase(), 
         bg: dynamicBg,
         audio: randomAudio
       }));
 
-      // Only search for Stickers (transparent cutouts) of the celebrity
-      const fetchUrl = `https://g.tenor.com/v1/search?q=${encodeURIComponent(cleanGifQuery)}&key=LIVDSRZULELA&searchfilter=sticker&limit=10`;
+      // USING GIPHY STICKER API: This strictly returns true transparent cutouts.
+      const fetchUrl = `https://api.giphy.com/v1/stickers/search?api_key=GlVGYHqc3SyCEGpoJCj7A5bXzD09s8Wf&q=${encodeURIComponent(cleanGifQuery)}&limit=5`;
 
       fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
-          if (data && data.results && data.results.length > 0) {
-            const randomIndex = Math.floor(Math.random() * Math.min(data.results.length, 5));
-            setVideoData(prev => ({ ...prev, gif: data.results[randomIndex].media[0].gif.url }));
-          } else {
-            setVideoData(prev => ({ ...prev, gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif" }));
+          if (data && data.data && data.data.length > 0) {
+            const randomIndex = Math.floor(Math.random() * data.data.length);
+            const stickerUrl = data.data[randomIndex].images.fixed_height.url;
+            // Route through proxy to prevent CDN Poisoning / Adblockers
+            setVideoData(prev => ({ ...prev, gif: `/api/proxy?url=${encodeURIComponent(stickerUrl)}` }));
           }
         })
-        .catch(() => {
-          setVideoData(prev => ({ ...prev, gif: "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif" }));
-        });
+        .catch(console.error);
     }
   }, [videoState]);
 
@@ -108,9 +102,18 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
         body, p, span, div, input, button {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+        /* Custom Text Stroke for TikTok Style */
+        .tiktok-text {
+          text-shadow: 
+            2px 2px 0 #000, 
+           -1px -1px 0 #000,  
+            1px -1px 0 #000,
+           -1px  1px 0 #000,
+            1px  1px 0 #000;
         }
       `}} />
 
@@ -126,8 +129,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
               src={videoData.bg} 
               alt="" 
               onLoad={() => setBgLoaded(true)}
-              className={`absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none transition-opacity duration-500 ${bgLoaded ? 'opacity-50' : 'opacity-0'}`} 
-              onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=800"; setBgLoaded(true); }} 
+              className={`absolute inset-0 w-full h-full object-cover mix-blend-luminosity filter contrast-125 pointer-events-none transition-opacity duration-500 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
             />
             
             <video 
@@ -137,30 +139,30 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
               muted 
               playsInline 
               crossOrigin="anonymous"
-              className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none z-[1] mix-blend-screen" 
+              className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none z-[1] mix-blend-screen" 
             />
             
             <audio ref={audioRef} src={videoData.audio} loop muted={isMuted} />
 
-            {/* TRUE TRANSPARENT STICKER */}
-            <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none z-[10]">
-              <img 
-                src={videoData.gif} 
-                alt="" 
-                // Removed mix-blend-multiply so the image retains its true colors and natural transparency
-                className="w-[240px] h-auto object-contain drop-shadow-[0_15px_20px_rgba(0,0,0,0.8)]" 
-                onError={(e) => { e.currentTarget.src = "https://media.tenor.com/mOPEt9lB5aUAAAAi/drake-computer.gif"; }} 
-              />
-            </div>
-
-            <div className="absolute top-14 left-0 right-0 px-6 text-center pointer-events-none z-[20]">
-              <h3 className="text-white text-[24px] sm:text-[26px] leading-[1.15] font-black uppercase tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stroke-sm" style={{ wordBreak: 'break-word' }}>
+            {/* TIKTOK TEXT (Positioned top-1/5, lowercase, thick black border) */}
+            <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
+              <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>
                 {videoData.text}
               </h3>
             </div>
 
+            {/* TRANSPARENT CUTOUT (Anchored to the absolute bottom, massive width) */}
+            <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
+              <img 
+                src={videoData.gif} 
+                alt="" 
+                className="w-[90%] max-h-[60%] object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)]" 
+                onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+              />
+            </div>
+
             {!isPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity z-[30]">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity z-[30]">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)] transform transition group-hover:scale-110">
                   <svg className="w-8 h-8 text-white fill-current translate-x-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                 </div>

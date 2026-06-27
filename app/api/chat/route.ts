@@ -7,9 +7,9 @@ export async function POST(req: Request) {
     
     const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
     const match = lastMsg.match(urlRegex);
-    const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
+    const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toLowerCase() : "the product";
 
-    const systemPrompt = `You are a highly clever, witty viral marketing director. You have TWO distinct modes.
+    const systemPrompt = `You are a highly clever viral marketing director. You have TWO distinct modes.
 
     MODE 1: CONVERSATION (If user says "hi" or asks a general question)
     - Answer naturally, helpfully, and accurately.
@@ -18,21 +18,21 @@ export async function POST(req: Request) {
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
     - Analyze the product. Output a blueprint for a highly relatable, clever meme ad.
-    - Hook Rule 1: Include the exact word "${brand}" in the hook.
-    - Hook Rule 2: Use clever, observational humor (e.g., "My bank account watching me buy...", "Me trying to justify...", "That one friend who..."). 
-    - Hook Rule 3: DO NOT use forced internet slang like "rizz", "fr fr", "cooked", or "mewing". Make it genuinely witty and shareable.
+    - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
+    - Hook Rule 2: Write it exactly like a casual TikTok caption. Use lowercase, conversational humor (e.g., "me acting like i know my macros so i just open ${brand}").
+    - Hook Rule 3: DO NOT use forced internet slang (no "rizz", "fr fr", "cooked"). Make it genuinely witty.
     - Hook Rule 4: Replace EVERY space in the hook with a hyphen (-).
-    - bgSearchTerm: A 2-3 word description of a photorealistic empty room matching the product vibe (e.g., luxury-kitchen, modern-gym, aesthetic-bedroom). Replace spaces with hyphens.
-    - gifSearchTerm: MUST BE A SPECIFIC, FAMOUS CELEBRITY NAME plus an emotion (e.g., drake-laughing, kevin-hart-staring, shaq-surprised, the-rock-confused). ABSOLUTELY NO generic terms or objects. Replace spaces with hyphens.
+    - gifSearchTerm: MUST BE A SPECIFIC CELEBRITY + ACTION (e.g., the-rock-smelling, shaq-eating, drake-typing, kevin-hart-staring). Replace spaces with hyphens.
+    - bgSearchTerm: MUST SEMANTICALLY MATCH THE GIF ACTION. (e.g., If action is eating -> modern-dining-room. If working -> modern-office. If working out -> luxury-gym). Replace spaces with hyphens.
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text (only if intent is chat)",
       "videoBlueprint": {
-        "hook": "Hyphenated-Witty-Hook-With-Brand-Name",
-        "bgSearchTerm": "luxury-closet",
-        "gifSearchTerm": "kevin-hart-crying"
+        "hook": "hyphenated-tiktok-caption-with-brand",
+        "bgSearchTerm": "luxury-kitchen",
+        "gifSearchTerm": "the-rock-smelling"
       }
     }`;
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.9, 
+          temperature: 0.8, 
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -59,9 +59,9 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `ME-TRYING-TO-JUSTIFY-BUYING-FROM-${brand}`;
-        const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "photorealistic-modern-room";
-        const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "drake-computer";
+        const hook = aiLogic.videoBlueprint?.hook || `me-trying-to-justify-buying-from-${brand}`;
+        const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "modern-living-room";
+        const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "the-rock-confused";
 
         const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
