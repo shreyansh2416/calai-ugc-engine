@@ -5,7 +5,6 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    // Automatically detect your deployment URL (works for both localhost and Vercel)
     const host = req.headers.get('host') || 'localhost:3000';
     const protocol = host.includes('localhost') ? 'http' : 'https';
     
@@ -15,29 +14,31 @@ export async function POST(req: Request) {
 
     const randomSeed = Math.floor(Math.random() * 100000);
 
-    const systemPrompt = `You are an elite, highly creative UGC viral marketing director for TikTok and IG Reels. You have TWO distinct modes.
+    const systemPrompt = `You are an elite, highly creative UGC viral marketing director. 
 
     MODE 1: CONVERSATION (If user says "hi" or asks a general question)
-    - Answer naturally, conversationally, and accurately like ChatGPT.
-    - DO NOT use hyphens instead of spaces. Use normal English formatting.
-    - DO NOT pitch your video generation capabilities unless explicitly asked "what can you do?".
+    - Answer naturally, conversationally, and accurately. DO NOT pitch video generation unless asked.
 
-    MODE 2: VIDEO DIRECTION (If user provides a product URL or describes a specific app/service)
-    - Analyze the product's actual value, competitive advantage, and utility.
+    MODE 2: VIDEO DIRECTION (If user provides a product URL)
+    - Analyze the product.
     - Hook Rule 1: Include the exact brand name "${brand}" in the hook.
-    - Hook Rule 2: BE ENDLESSLY CREATIVE. Write a completely unique, trendy TikTok caption every single time. Never repeat previous jokes. 
-    - Hook Rule 3: POSITIVE "CHEAT CODE" HUMOR. Frame the user as a genius, a mastermind, or someone who unlocked a massive unfair advantage using the product. 
-    - Hook Rule 4: NO CRINGE SLANG. Banned words: "rizz", "fr fr", "cooked", "nemesis". Keep it sharp, witty, and lowercase.
-    - Hook Rule 5: Replace EVERY space in your final hook string with a single hyphen (-). 
-    - gifCategory: CHOOSE EXACTLY ONE OF THESE TEN STRINGS ONLY: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to heavily vary your selection).
-    - bgCategory: CHOOSE EXACTLY ONE OF THESE FIVE STRINGS ONLY: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the chosen celebrity.
+    - Hook Rule 2: ROTATE YOUR COMEDY STYLE. Based on the Random Seed, choose ONE of these 5 distinct vibes:
+        Vibe A: The "Delusional CEO" (acting like a billionaire just because you use the app).
+        Vibe B: The "Unsolicited Life Coach" (aggressively forcing your friends to use it).
+        Vibe C: The "Main Character" (acting dramatically superior to everyone else).
+        Vibe D: The "Financial Disaster" (justifying terrible spending habits because of the product).
+        Vibe E: The "Lazy Optimizer" (letting the app do all the work while you do nothing).
+    - Hook Rule 3: BANNED WORDS. You are STRICTLY FORBIDDEN from using the words "genius", "mastermind", "cheat code", "rizz", "fr fr", or "cooked". Show, don't tell. Be witty and fresh.
+    - Hook Rule 4: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
+    - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to heavily vary your selection).
+    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the chosen celebrity.
     
-    OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this exact schema:
+    OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
     {
       "intent": "chat" or "video",
-      "chatResponse": "Normal English text response here",
+      "chatResponse": "Normal English text",
       "videoBlueprint": {
-        "hook": "hyphenated-witty-lowercase-success-caption",
+        "hook": "hyphenated-witty-lowercase-caption",
         "bgCategory": "office",
         "gifCategory": "elon"
       }
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.2, // Maximum creative variance
+          temperature: 1.25, // Extreme temperature to force high variety
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -69,17 +70,16 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `me-unlocking-genius-mode-with-${brand}`;
+        const hook = aiLogic.videoBlueprint?.hook || `me-using-${brand}-to-avoid-doing-real-work`;
         const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
         const gifTerm = aiLogic.videoBlueprint?.gifCategory || "elon";
 
-        // DYNAMIC URL: This will now perfectly output your real Vercel URL in production and localhost during dev.
         const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}&t=${Date.now()}`;
         responseText = `I've analyzed the product and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
-      console.error("Groq Engine Execution Error:", e);
-      responseText = "I encountered a minor connection hiccup, but my creative direction engines are fully operational and ready to run!";
+      console.error("Groq Engine Error:", e);
+      responseText = "I encountered a minor connection hiccup, but my creative engines are ready!";
     }
 
     const encoder = new TextEncoder();
