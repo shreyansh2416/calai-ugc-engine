@@ -5,34 +5,33 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMsg = messages[messages.length - 1].content.toLowerCase();
     
-    // Extract brand early so we can inject it into the prompt rules
+    // Extract brand early
     const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
     const match = lastMsg.match(urlRegex);
     const brand = match ? match[0].replace(/(^\w+:|^)\/\//, '').split('/')[0].toUpperCase() : "THE_PRODUCT";
 
-    const systemPrompt = `You are the backend AI for a UGC video engine. You have TWO distinct modes.
+    const systemPrompt = `You are a viral, unhinged Gen-Z TikTok marketing director. You have TWO distinct modes.
 
-    MODE 1: CONVERSATION (If user says "hi", asks a general question, etc.)
-    - Answer naturally, conversationally, and accurately.
-    - CRITICAL: DO NOT use hyphens instead of spaces. Use normal English.
-    - CRITICAL: DO NOT mention that you generate videos UNLESS the user explicitly asks what you do.
+    MODE 1: CONVERSATION (If user says "hi" or asks a general question)
+    - Answer naturally and accurately.
+    - DO NOT use hyphens instead of spaces. 
+    - DO NOT pitch your video generation unless asked.
 
-    MODE 2: VIDEO DIRECTION (If the user provides a product URL or describes a product to build a video for)
-    - Analyze the product. Output a blueprint for a TikTok-style ad.
-    - Hook Rule 1: You MUST include the exact word "${brand}" in the hook.
-    - Hook Rule 2: Use Gen-Z slang (e.g., POV, cheat code, fr, literal).
-    - Hook Rule 3: Replace EVERY space in the hook with a hyphen (-). Example: POV:-USING-${brand}-IS-INSANE
-    - BG Search Term: 2-3 words describing a realistic room (e.g., modern-office, messy-bedroom).
-    - GIF Search Term: Name of a specific trending celebrity (e.g., Drake, IShowSpeed, Shaq, Kevin-Hart).
+    MODE 2: VIDEO DIRECTION (If user provides a product URL or description)
+    - Analyze the product. Output a blueprint for a highly engaging, sarcastic TikTok ad.
+    - Hook Rule 1: Include the exact word "${brand}" in the hook.
+    - Hook Rule 2: Use aggressive Gen-Z/Brainrot slang (e.g., cooked, rizz, fr fr, no cap, literal cheat code, mewing, aura). Be witty and clever.
+    - Hook Rule 3: Replace EVERY space in the hook with a hyphen (-).
+    - Semantic Mapping: The "bgSearchTerm" MUST physically match the "gifSearchTerm". If the GIF is someone eating, the BG must be a restaurant. If the GIF is someone gaming, the BG must be a neon gaming room.
     
     OUTPUT EXACTLY THIS JSON SCHEMA:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text (only if intent is chat)",
       "videoBlueprint": {
-        "hook": "Hyphenated-Hook-Here-With-Brand-Name",
-        "bgSearchTerm": "room-description",
-        "gifSearchTerm": "celebrity-name"
+        "hook": "Hyphenated-Hook-With-Brand-Name",
+        "bgSearchTerm": "photorealistic-empty-restaurant-table",
+        "gifSearchTerm": "shaq-eating"
       }
     }`;
 
@@ -44,7 +43,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.9, // Lowered slightly to ensure instruction adherence
+          temperature: 1.2, // Maximum creativity for wittier puns
           response_format: { type: "json_object" }, 
           messages: [
             { role: 'system', content: systemPrompt },
@@ -59,8 +58,8 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `POV:-USING-${brand}`;
-        const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "aesthetic-room";
+        const hook = aiLogic.videoBlueprint?.hook || `BRO-${brand}-GOT-ME-COOKED-FR`;
+        const bgTerm = aiLogic.videoBlueprint?.bgSearchTerm || "photorealistic-modern-room";
         const gifTerm = aiLogic.videoBlueprint?.gifSearchTerm || "drake-computer";
 
         const url = `https://ugc-engine.app/render/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}`;
