@@ -1,5 +1,6 @@
 export const runtime = 'edge';
 
+// Upgraded Scraper: Grabs title if description is missing
 async function fetchSiteMetadata(url: string): Promise<string> {
   try {
     const targetUrl = url.startsWith('http') ? url : `https://${url}`;
@@ -9,10 +10,14 @@ async function fetchSiteMetadata(url: string): Promise<string> {
     });
     
     const html = await response.text();
-    const match = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i) ||
-                  html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i);
-                  
-    return match && match[1] ? match[1].trim() : "";
+    const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i) ||
+                      html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i);
+    
+    if (descMatch && descMatch[1]) return descMatch[1].trim();
+
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    return titleMatch && titleMatch[1] ? `Website Title: ${titleMatch[1].trim()}` : "";
+
   } catch (e) {
     return "";
   }
@@ -30,47 +35,47 @@ export async function POST(req: Request) {
     const match = lastMsg.match(urlRegex);
     
     let brand = "the product";
-    let crawledContext = "No live crawling data available.";
+    let crawledContext = "No specific data found. Assume it's a general web app.";
     
     if (match) {
       const fullUrl = match[0];
       brand = fullUrl.replace(/(^\w+:|^)\/\//, '').split('/')[0].toLowerCase();
       const siteDescription = await fetchSiteMetadata(fullUrl);
       if (siteDescription) {
-        crawledContext = `CRAWLED DESCRIPTION FROM ${brand}: "${siteDescription}"`;
+        crawledContext = `Live Site Context: "${siteDescription}"`;
       }
     }
 
-    // This array holds 10 completely distinct trending TikTok concepts
-    const memeFormats = [
-      `"the urge to drop everything and completely obsess over ${brand}"`,
-      `"my FBI agent watching me spend another 4 hours on ${brand}"`,
-      `"my top 5 horror movies: number 1, living without ${brand}"`,
-      `"me trying to explain to my friends why ${brand} is the greatest thing ever"`,
-      `"when someone asks how I did it so fast and my secret is just ${brand}"`,
-      `"my bank account watching me ignore it completely to use ${brand}"`,
-      `"how it feels to absolutely master ${brand}"`,
-      `"when they say you should balance your expenses but ${brand} exists"`,
-      `"POV: your attention span is cooked so you open ${brand} instead"`,
-      `"me acting like an absolute academic weapon because I use ${brand}"`
+    // A more flexible array of meme archetypes
+    const memeArchetypes = [
+      "The 'Life Changed' POV",
+      "The 'FBI Agent watching me' joke",
+      "The 'Trying to explain to my friends' joke",
+      "The 'Urge to drop everything and use this' joke",
+      "The 'Secret to my success' joke",
+      "The 'Bank account crying' joke (if it's a shopping site)",
+      "The 'Cooked attention span' joke",
+      "The 'Feeling like a genius' joke"
     ];
 
-    // Select ONE specific meme format mathematically to force the AI into variety
-    const randomSeed = Math.floor(Math.random() * 100000);
-    const forcedMeme = memeFormats[randomSeed % memeFormats.length];
+    // Guarantee a unique seed every millisecond so it NEVER repeats the same joke
+    const randomSeed = Date.now() + Math.floor(Math.random() * 100000);
+    const forcedVibe = memeArchetypes[randomSeed % memeArchetypes.length];
 
-    const systemPrompt = `You are an elite UGC viral marketing director. 
+    const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
 
     MODE 1: CONVERSATION 
     - Answer naturally, concisely, and accurately.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL)
-    - Analyze the brand name, and review this crawled context from their live site: ${crawledContext}
-    - Hook Rule 1: You MUST write your caption based EXACTLY on this trending meme format: ${forcedMeme}
-    - Hook Rule 2: Adapt the format slightly to match the product's actual use case (e.g. tracking calories, watching videos, buying shoes) but DO NOT lose the comedic punchline.
-    - Hook Rule 3: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase.
-    - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to shuffle your selection).
-    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the product domain.
+    - You must write a funny TikTok/Reels caption for the brand: ${brand}
+    - Read what the brand actually does here: ${crawledContext}
+    
+    - RULE 1 - THE VIBE: Base your joke on this specific meme archetype: "${forcedVibe}".
+    - RULE 2 - COHERENCE OVER EVERYTHING: The joke MUST actually make sense for what the product does. Do not write word salad. If the assigned meme archetype doesn't make sense for the product, ignore it and write a universally funny hook about being addicted to ${brand}.
+    - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation.
+    - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to shuffle).
+    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the product.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
     {
@@ -91,7 +96,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.9, 
+          temperature: 0.85, // Slightly lower temp to ensure logical coherence
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
@@ -103,7 +108,7 @@ export async function POST(req: Request) {
       if (aiLogic.intent === "chat") {
         responseText = aiLogic.chatResponse;
       } else {
-        const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-like-a-pro`;
+        const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-every-single-day`;
         const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
         const gifTerm = aiLogic.videoBlueprint?.gifCategory || "elon";
 
