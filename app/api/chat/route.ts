@@ -43,7 +43,6 @@ export async function POST(req: Request) {
       const siteDescription = await fetchSiteMetadata(fullUrl);
       
       if (siteDescription) {
-        // Sanitize the scraped data so the AI doesn't write jokes about Cloudflare blocks
         if (siteDescription.toLowerCase().includes("access denied") || siteDescription.toLowerCase().includes("security check") || siteDescription.toLowerCase().includes("cloudflare")) {
             crawledContext = `Assume ${brand} is a highly popular mainstream product or brand.`;
         } else {
@@ -66,20 +65,9 @@ export async function POST(req: Request) {
     ];
     const forcedVibe = memeArchetypes[Math.floor(Math.random() * memeArchetypes.length)];
 
-    const visualPairs = [
-      { g: "drake", b: "bedroom" },
-      { g: "drake", b: "store" },
-      { g: "rock", b: "gym" },
-      { g: "cena", b: "gym" },
-      { g: "ronaldo", b: "gym" },
-      { g: "shaq", b: "store" },
-      { g: "gordon", b: "kitchen" },
-      { g: "elon", b: "office" },
-      { g: "hart", b: "store" },
-      { g: "spongebob", b: "bedroom" },
-      { g: "speed", b: "bedroom" }
-    ];
-    const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
+    // HYBRID FIX: JS handles the celebrity to force variety, AI will handle the background to force context.
+    const celebrities = ["drake", "rock", "cena", "ronaldo", "shaq", "gordon", "elon", "hart", "spongebob", "speed"];
+    const forcedGif = celebrities[Math.floor(Math.random() * celebrities.length)];
 
     const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
 
@@ -93,13 +81,15 @@ export async function POST(req: Request) {
     - RULE 1 - THE VIBE: Base your joke on this archetype: "${forcedVibe}".
     - RULE 2 - EXTREME ENTROPY: Mutate your vocabulary and phrasing. NEVER write the same sentence structure twice. Be wildly creative.
     - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation. Do not include numbers unless they are part of the joke.
+    - RULE 4 - BACKGROUND CONTEXT: You MUST select the most logical background category for ${brand}. Choose EXACTLY ONE from this list: ["gym", "kitchen", "bedroom", "office", "store"]. (e.g. For tech/phones choose office or bedroom. For fitness choose gym. For food choose kitchen).
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text",
       "videoBlueprint": {
-        "hook": "hyphenated-witty-lowercase-caption"
+        "hook": "hyphenated-witty-lowercase-caption",
+        "bgCategory": "office"
       }
     }`;
 
@@ -125,7 +115,10 @@ export async function POST(req: Request) {
         responseText = aiLogic.chatResponse;
       } else {
         const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-every-single-day`;
-        const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${forcedVisuals.b}&g=${forcedVisuals.g}&t=${currentMs}`;
+        // AI picks the logical background, JS injects the random celebrity
+        const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
+        const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${bgTerm}&g=${forcedGif}&t=${currentMs}`;
+        
         responseText = `I've crawled the site content, analyzed the metadata, and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
