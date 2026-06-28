@@ -1,6 +1,5 @@
 export const runtime = 'edge';
 
-// Upgraded Scraper: Grabs title if description is missing
 async function fetchSiteMetadata(url: string): Promise<string> {
   try {
     const targetUrl = url.startsWith('http') ? url : `https://${url}`;
@@ -17,7 +16,6 @@ async function fetchSiteMetadata(url: string): Promise<string> {
 
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     return titleMatch && titleMatch[1] ? `Website Title: ${titleMatch[1].trim()}` : "";
-
   } catch (e) {
     return "";
   }
@@ -46,21 +44,35 @@ export async function POST(req: Request) {
       }
     }
 
-    // A more flexible array of meme archetypes
+    // 1. JS-Forced Meme Variety
     const memeArchetypes = [
       "The 'Life Changed' POV",
       "The 'FBI Agent watching me' joke",
       "The 'Trying to explain to my friends' joke",
       "The 'Urge to drop everything and use this' joke",
       "The 'Secret to my success' joke",
-      "The 'Bank account crying' joke (if it's a shopping site)",
+      "The 'Bank account crying' joke",
       "The 'Cooked attention span' joke",
       "The 'Feeling like a genius' joke"
     ];
-
-    // Guarantee a unique seed every millisecond so it NEVER repeats the same joke
     const randomSeed = Date.now() + Math.floor(Math.random() * 100000);
     const forcedVibe = memeArchetypes[randomSeed % memeArchetypes.length];
+
+    // 2. JS-Forced Visual Variety (Bypassing the AI completely)
+    const visualPairs = [
+      { g: "drake", b: "bedroom" },
+      { g: "drake", b: "store" },
+      { g: "rock", b: "gym" },
+      { g: "cena", b: "gym" },
+      { g: "ronaldo", b: "gym" },
+      { g: "shaq", b: "store" },
+      { g: "gordon", b: "kitchen" },
+      { g: "elon", b: "office" },
+      { g: "hart", b: "store" },
+      { g: "spongebob", b: "bedroom" },
+      { g: "speed", b: "bedroom" }
+    ];
+    const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
 
     const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
 
@@ -72,19 +84,15 @@ export async function POST(req: Request) {
     - Read what the brand actually does here: ${crawledContext}
     
     - RULE 1 - THE VIBE: Base your joke on this specific meme archetype: "${forcedVibe}".
-    - RULE 2 - COHERENCE OVER EVERYTHING: The joke MUST actually make sense for what the product does. Do not write word salad. If the assigned meme archetype doesn't make sense for the product, ignore it and write a universally funny hook about being addicted to ${brand}.
+    - RULE 2 - COHERENCE OVER EVERYTHING: The joke MUST actually make sense for what the product does. 
     - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation.
-    - gifCategory: CHOOSE EXACTLY ONE: "drake", "rock", "shaq", "hart", "spongebob", "speed", "cena", "gordon", "elon", "ronaldo". (Use Random Seed ${randomSeed} to shuffle).
-    - bgCategory: CHOOSE EXACTLY ONE: "gym", "kitchen", "bedroom", "office", "store". Match it logically to the product.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
     {
       "intent": "chat" or "video",
       "chatResponse": "Normal English text",
       "videoBlueprint": {
-        "hook": "hyphenated-witty-lowercase-caption",
-        "bgCategory": "office",
-        "gifCategory": "elon"
+        "hook": "hyphenated-witty-lowercase-caption"
       }
     }`;
 
@@ -96,7 +104,7 @@ export async function POST(req: Request) {
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.85, // Slightly lower temp to ensure logical coherence
+          temperature: 0.85, 
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
@@ -109,10 +117,10 @@ export async function POST(req: Request) {
         responseText = aiLogic.chatResponse;
       } else {
         const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-every-single-day`;
-        const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
-        const gifTerm = aiLogic.videoBlueprint?.gifCategory || "elon";
-
-        const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${bgTerm}&g=${gifTerm}&t=${Date.now()}`;
+        
+        // We completely ignore the AI's visual choices and inject our true JS randomness here
+        const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${forcedVisuals.b}&g=${forcedVisuals.g}&t=${Date.now()}`;
+        
         responseText = `I've crawled the site content, analyzed the metadata, and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
