@@ -42,9 +42,9 @@ export async function POST(req: Request) {
       
       const siteDescription = await fetchSiteMetadata(fullUrl);
       
-      // FIX: Sanitize the scraped data so the AI doesn't write jokes about Cloudflare blocks
       if (siteDescription) {
-        if (siteDescription.toLowerCase().includes("access denied") || siteDescription.toLowerCase().includes("security check")) {
+        // Sanitize the scraped data so the AI doesn't write jokes about Cloudflare blocks
+        if (siteDescription.toLowerCase().includes("access denied") || siteDescription.toLowerCase().includes("security check") || siteDescription.toLowerCase().includes("cloudflare")) {
             crawledContext = `Assume ${brand} is a highly popular mainstream product or brand.`;
         } else {
             crawledContext = `Live Site Context: "${siteDescription}"`;
@@ -53,7 +53,6 @@ export async function POST(req: Request) {
     }
 
     const currentMs = Date.now();
-    const randomHash = Math.random().toString(36).substring(7);
 
     const memeArchetypes = [
       "The relatable late-night thought",
@@ -82,10 +81,7 @@ export async function POST(req: Request) {
     ];
     const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
 
-    // FIX: Moved the seed into a hidden system tag and explicitly banned it from the output
-    const systemPrompt = `[SYSTEM SEED: ${currentMs}-${randomHash}]
-    You are an elite, highly intelligent UGC viral marketing director. 
-    DO NOT output the SYSTEM SEED in your response.
+    const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
 
     MODE 1: CONVERSATION 
     - Answer naturally, concisely, and accurately.
@@ -95,7 +91,7 @@ export async function POST(req: Request) {
     - Context: ${crawledContext}
     
     - RULE 1 - THE VIBE: Base your joke on this archetype: "${forcedVibe}".
-    - RULE 2 - EXTREME ENTROPY: Use the hidden system seed to mutate your vocabulary. NEVER write the same sentence structure twice. Be wildly creative.
+    - RULE 2 - EXTREME ENTROPY: Mutate your vocabulary and phrasing. NEVER write the same sentence structure twice. Be wildly creative.
     - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation. Do not include numbers unless they are part of the joke.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
@@ -116,7 +112,7 @@ export async function POST(req: Request) {
         cache: 'no-store', 
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.1, 
+          temperature: 1.15, 
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
