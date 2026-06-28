@@ -3,7 +3,7 @@
 A high-performance, edge-rendered chat interface that intelligently parses product URLs, extracts website metadata, and orchestrates dynamic, multi-layered User Generated Content (UGC) marketing videos natively inside the browser.
 
 ## 🚀 Live Demo
-👉 **[INSERT YOUR LIVE VERCEL LINK HERE]**
+👉 **https://calai-ugc-engine.vercel.app/**
 
 ## 🧠 Core Features & Architectural Decoupling
 
