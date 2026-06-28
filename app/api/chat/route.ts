@@ -1,4 +1,5 @@
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic'; // CRITICAL: Forces Vercel to never cache this route
 
 async function fetchSiteMetadata(url: string): Promise<string> {
   try {
@@ -44,7 +45,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // 1. JS-Forced Meme Variety
+    const currentMs = Date.now();
+
     const memeArchetypes = [
       "The 'Life Changed' POV",
       "The 'FBI Agent watching me' joke",
@@ -55,10 +57,9 @@ export async function POST(req: Request) {
       "The 'Cooked attention span' joke",
       "The 'Feeling like a genius' joke"
     ];
-    const randomSeed = Date.now() + Math.floor(Math.random() * 100000);
-    const forcedVibe = memeArchetypes[randomSeed % memeArchetypes.length];
+    // Uses the live timestamp to guarantee a new choice
+    const forcedVibe = memeArchetypes[currentMs % memeArchetypes.length];
 
-    // 2. JS-Forced Visual Variety (Bypassing the AI completely)
     const visualPairs = [
       { g: "drake", b: "bedroom" },
       { g: "drake", b: "store" },
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
     const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
 
     const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
+    CURRENT TIMESTAMP: ${currentMs} // Forces prompt uniqueness to bypass all caches
 
     MODE 1: CONVERSATION 
     - Answer naturally, concisely, and accurately.
@@ -102,9 +104,10 @@ export async function POST(req: Request) {
       const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+        cache: 'no-store', // CRITICAL: Tells Next.js to NEVER cache this fetch request
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.85, 
+          temperature: 0.9, 
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
@@ -117,10 +120,7 @@ export async function POST(req: Request) {
         responseText = aiLogic.chatResponse;
       } else {
         const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-every-single-day`;
-        
-        // We completely ignore the AI's visual choices and inject our true JS randomness here
-        const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${forcedVisuals.b}&g=${forcedVisuals.g}&t=${Date.now()}`;
-        
+        const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${forcedVisuals.b}&g=${forcedVisuals.g}&t=${currentMs}`;
         responseText = `I've crawled the site content, analyzed the metadata, and organized the creative assets. Check out the generated clip here:\n${url}`;
       }
     } catch (e) {
@@ -140,7 +140,12 @@ export async function POST(req: Request) {
       },
     });
 
-    return new Response(stream, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    return new Response(stream, { 
+      headers: { 
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate' // Forces the browser to not cache the response
+      } 
+    });
 
   } catch (error: any) {
     return new Response(error.message || "Internal Server Error", { status: 500 });
