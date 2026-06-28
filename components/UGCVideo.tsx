@@ -56,7 +56,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       const bgArray = assetLibrary.backgrounds[bgKey] || assetLibrary.backgrounds.office;
       const rawBgUrl = bgArray[Math.floor(Math.random() * bgArray.length)];
       
-      // CRITICAL UPGRADE: Force Unsplash to perfectly crop the image server-side to exactly 9:16 vertical
       const fullBleedBg = rawBgUrl.split('?')[0] + "?auto=format&fit=crop&w=400&h=800&q=80";
       
       const selectedGif = assetLibrary.stickers[gifKey] || assetLibrary.stickers.elon;
@@ -98,7 +97,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
       audioRef.current.pause();
       clearInterval(progressInterval.current);
     } else {
-      audioRef.current.play().catch(e => console.log(e));
+      audioRef.current.play().catch(e => console.error("Playback Error:", e));
       startTimeline();
     }
     setIsPlaying(!isPlaying);
@@ -113,7 +112,6 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!bgFailed) {
       setBgFailed(true);
-      // Clean integer seed to prevent fallback breaking
       const safeSeed = Math.floor(Math.random() * 10000);
       e.currentTarget.src = `https://picsum.photos/seed/${safeSeed}/400/800`;
     }
@@ -123,8 +121,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
     <>
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
-        body, p, span, div, input, button { font-family: 'Inter', -apple-system, sans-serif !important; }
-        .tiktok-text { text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+        .tiktok-text { font-family: 'Inter', -apple-system, sans-serif !important; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
       `}} />
 
       <div className="w-full flex flex-col items-center my-8" style={{ isolation: 'isolate' }}>
@@ -138,7 +135,7 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
               onError={handleImageError}
             />
             
-            <audio ref={audioRef} src={videoData.audio} loop onEnded={() => setProgress(0)} />
+            <audio ref={audioRef} src={videoData.audio} loop preload="auto" onEnded={() => setProgress(0)} />
             
             <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
               <h3 className="tiktok-text text-white text-[20px] sm:text-[22px] leading-[1.25] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>{videoData.text}</h3>
@@ -162,10 +159,10 @@ export default function UGCPlayer({ videoState }: { videoState: any }) {
           </div>
         </div>
         <div className="flex w-[280px] sm:w-[320px] justify-between gap-3 mt-5">
-          <button onClick={() => setIsMuted(!isMuted)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white/90 text-sm font-medium py-3 rounded-xl border border-white/10 transition-colors flex justify-center items-center gap-2">
+          <button onClick={() => setIsMuted(!isMuted)} aria-label="Toggle Mute" className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white/90 text-sm font-medium py-3 rounded-xl border border-white/10 transition-colors flex justify-center items-center gap-2">
             {isMuted ? "Unmute" : "Mute"}
           </button>
-          <button onClick={handleCopy} className={`flex-1 text-sm font-semibold py-3 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 ${copyText.includes("Copied") ? "bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]" : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-[0_0_15px_rgba(139,92,246,0.4)]"}`}>
+          <button onClick={handleCopy} aria-label="Copy Video Link" className={`flex-1 text-sm font-semibold py-3 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 ${copyText.includes("Copied") ? "bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]" : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-[0_0_15px_rgba(139,92,246,0.4)]"}`}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
             {copyText}
           </button>

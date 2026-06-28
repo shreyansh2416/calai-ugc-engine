@@ -8,7 +8,6 @@ export const scrapeProductTool = tool({
     url: z.string().describe('The URL or domain name to scrape'),
   }),
   execute: async ({ url }) => {
-    console.log(`Scraping URL: ${url}`);
     return { 
       title: 'CalAI Premium', 
       price: '$9.99/mo',
@@ -26,7 +25,6 @@ export const generateUgcVideoTool = tool({
     }),
   }),
   execute: async ({ productData }) => {
-    console.log(`Generating video for: ${productData.title}`);
     return { 
       videoData: { 
         url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
