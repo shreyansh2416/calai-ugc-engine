@@ -1,5 +1,5 @@
 export const runtime = 'edge';
-export const dynamic = 'force-dynamic'; // CRITICAL: Forces Vercel to never cache this route
+export const dynamic = 'force-dynamic';
 
 async function fetchSiteMetadata(url: string): Promise<string> {
   try {
@@ -47,17 +47,17 @@ export async function POST(req: Request) {
 
     const currentMs = Date.now();
 
+    // UPGRADE: Universal Social Media Archetypes instead of just TikTok
     const memeArchetypes = [
-      "The 'Life Changed' POV",
-      "The 'FBI Agent watching me' joke",
-      "The 'Trying to explain to my friends' joke",
-      "The 'Urge to drop everything and use this' joke",
-      "The 'Secret to my success' joke",
-      "The 'Bank account crying' joke",
-      "The 'Cooked attention span' joke",
-      "The 'Feeling like a genius' joke"
+      "The relatable late-night thought",
+      "The 'Nobody: / Me:' format",
+      "The 'How it started vs. How it is going' vibe",
+      "The unspoken rule of using this product",
+      "The highly specific targeted ad feeling",
+      "The unexpected life hack",
+      "The product review no one asked for but everyone needs",
+      "The 'Me vs. Also Me' internal struggle"
     ];
-    // Uses the live timestamp to guarantee a new choice
     const forcedVibe = memeArchetypes[currentMs % memeArchetypes.length];
 
     const visualPairs = [
@@ -76,17 +76,17 @@ export async function POST(req: Request) {
     const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
 
     const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
-    CURRENT TIMESTAMP: ${currentMs} // Forces prompt uniqueness to bypass all caches
+    CURRENT TIMESTAMP: ${currentMs}
 
     MODE 1: CONVERSATION 
     - Answer naturally, concisely, and accurately.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL)
-    - You must write a funny TikTok/Reels caption for the brand: ${brand}
+    - You must write a funny social media meme caption for the brand: ${brand}
     - Read what the brand actually does here: ${crawledContext}
     
-    - RULE 1 - THE VIBE: Base your joke on this specific meme archetype: "${forcedVibe}".
-    - RULE 2 - COHERENCE OVER EVERYTHING: The joke MUST actually make sense for what the product does. 
+    - RULE 1 - THE VIBE: Base your joke on this specific universal social media archetype: "${forcedVibe}".
+    - RULE 2 - COHERENCE OVER EVERYTHING: The joke MUST actually make sense for what the product does. Avoid repeating the same joke structure.
     - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
       const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        cache: 'no-store', // CRITICAL: Tells Next.js to NEVER cache this fetch request
+        cache: 'no-store', 
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           temperature: 0.9, 
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
     return new Response(stream, { 
       headers: { 
         'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-store, must-revalidate' // Forces the browser to not cache the response
+        'Cache-Control': 'no-cache, no-store, must-revalidate' 
       } 
     });
 
