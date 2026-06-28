@@ -1,14 +1,20 @@
-# Founding Engineer Coding Assessment - UGC Video Generator Chat
+# 🎬 AI UGC Video Ad Engine
 
-A real-time AI chat application built with Next.js, featuring edge runtime streaming, automated web scraping tools, and dynamic video asset organization components.
+A high-performance, edge-rendered chat interface that intelligently parses product URLs, extracts website metadata, and orchestrates dynamic, multi-layered User Generated Content (UGC) marketing videos natively inside the browser.
 
-## Technical Choices & Architecture
-- **Framework:** Next.js (App Router) utilizing the Vercel AI SDK.
-- **Streaming Pipeline:** Configured with `export const runtime = 'edge'` to optimize stream delivery and ensure non-blocking layout rendering.
-- **Agentic Multi-Step Logic:** Uses `maxSteps: 5` allowing the LLM engine to autonomously extract user product details, trigger custom web scraping modules, and pipe the output configuration back to the client interface.
-- **Graceful Error Recovery:** Includes custom backend interceptors. If an API quota or environment variable boundary is hit, the application isolates the error gracefully and outputs system remediation steps without breaking UI context or causing runtime states to clear.
+## 🚀 Live Demo
+👉 **[INSERT YOUR LIVE VERCEL LINK HERE]**
 
-## How to Run & Test
-1. Clone the repository and install dependencies:
-   ```bash
-   npm install
+## 🧠 Core Features & Architectural Decoupling
+
+* **Serverless Edge Metadata Scraping:** When a user passes a URL, an inline Edge-safe HTML scanner dynamically extracts Open Graph (`og:description`) and document headers. This feeds granular, live context directly into the LLM logic, enabling hyper-relevant marketing captions.
+* **Deterministic Visual Variety Engine:** To bypass standard LLM randomness limits (where models tend to repeat asset choices), asset pairing is handled mathematically via JavaScript runtime distributions. This completely mitigates deterministic repetition.
+* **Auto-Healing Asset Fallback Pipeline:** Relying on standard image CDNs opens up third-party IP rate-limiting. This engine utilizes an active `onError` listener wrapper—instantly swapping downstream CDNs (switching to optimized Picsum vertical seeds) or falling back to a custom CSS frame to guarantee an uninterrupted user layout.
+* **Full-Bleed Responsive Player Architecture:** Videos are dynamically formatted server-side using aspect cropping tags (`&fit=crop&w=400&h=800`) to completely remove horizontal and vertical letterboxing (black bars), producing clean native 9:16 mobile canvas clips.
+* **Standalone Micro-Routing:** Video links generated within the chat context are completely decoupled from the chat layout, executing natively within dedicated sub-routes (`/video/[brand]`) using real-time parameter tracking.
+
+## 🛠️ Technology Stack
+* **Framework:** Next.js (App Router Ecosystem)
+* **Hosting/Runtime:** Vercel Edge Network
+* **Styling:** Tailwind CSS 
+* **AI Orchestration:** Groq Cloud Inference (`llama-3.3-70b-versatile`)
