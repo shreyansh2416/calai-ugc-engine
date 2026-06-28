@@ -46,8 +46,8 @@ export async function POST(req: Request) {
     }
 
     const currentMs = Date.now();
+    const randomHash = Math.random().toString(36).substring(7);
 
-    // UPGRADE: Universal Social Media Archetypes instead of just TikTok
     const memeArchetypes = [
       "The relatable late-night thought",
       "The 'Nobody: / Me:' format",
@@ -58,7 +58,8 @@ export async function POST(req: Request) {
       "The product review no one asked for but everyone needs",
       "The 'Me vs. Also Me' internal struggle"
     ];
-    const forcedVibe = memeArchetypes[currentMs % memeArchetypes.length];
+    // Replaced modulo with true Math.random for guaranteed archetype variety
+    const forcedVibe = memeArchetypes[Math.floor(Math.random() * memeArchetypes.length)];
 
     const visualPairs = [
       { g: "drake", b: "bedroom" },
@@ -76,17 +77,16 @@ export async function POST(req: Request) {
     const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
 
     const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
-    CURRENT TIMESTAMP: ${currentMs}
 
     MODE 1: CONVERSATION 
     - Answer naturally, concisely, and accurately.
 
     MODE 2: VIDEO DIRECTION (If user provides a product URL)
-    - You must write a funny social media meme caption for the brand: ${brand}
-    - Read what the brand actually does here: ${crawledContext}
+    - Write a funny social media meme caption for the brand: ${brand}
+    - Context: ${crawledContext}
     
-    - RULE 1 - THE VIBE: Base your joke on this specific universal social media archetype: "${forcedVibe}".
-    - RULE 2 - COHERENCE OVER EVERYTHING: The joke MUST actually make sense for what the product does. Avoid repeating the same joke structure.
+    - RULE 1 - THE VIBE: Base your joke on this archetype: "${forcedVibe}".
+    - RULE 2 - EXTREME ENTROPY: Here is your random seed: [${currentMs}-${randomHash}]. You MUST use this seed to completely mutate your vocabulary and phrasing. NEVER write the same sentence structure twice. Be wildly creative.
     - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
         cache: 'no-store', 
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.9, 
+          temperature: 1.15, // CRITICAL: High temperature forces the AI to choose different words
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
