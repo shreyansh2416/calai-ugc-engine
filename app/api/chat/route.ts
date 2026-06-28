@@ -65,7 +65,6 @@ export async function POST(req: Request) {
     ];
     const forcedVibe = memeArchetypes[Math.floor(Math.random() * memeArchetypes.length)];
 
-    // HYBRID FIX: JS handles the celebrity to force variety, AI will handle the background to force context.
     const celebrities = ["drake", "rock", "cena", "ronaldo", "shaq", "gordon", "elon", "hart", "spongebob", "speed"];
     const forcedGif = celebrities[Math.floor(Math.random() * celebrities.length)];
 
@@ -102,7 +101,7 @@ export async function POST(req: Request) {
         cache: 'no-store', 
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.15, 
+          temperature: 0.85, 
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
@@ -115,7 +114,6 @@ export async function POST(req: Request) {
         responseText = aiLogic.chatResponse;
       } else {
         const hook = aiLogic.videoBlueprint?.hook || `using-${brand}-every-single-day`;
-        // AI picks the logical background, JS injects the random celebrity
         const bgTerm = aiLogic.videoBlueprint?.bgCategory || "office";
         const url = `${protocol}://${host}/video/${brand}?h=${hook}&b=${bgTerm}&g=${forcedGif}&t=${currentMs}`;
         

@@ -52,7 +52,6 @@ export default function StandaloneVideoPage() {
     const bgArray = assetLibrary.backgrounds[validBgKey as keyof typeof assetLibrary.backgrounds];
     const rawBgUrl = bgArray[Math.floor(Math.random() * bgArray.length)];
     
-    // Server-side vertical crop formatting
     const fullBleedBg = rawBgUrl.split('?')[0] + "?auto=format&fit=crop&w=400&h=800&q=80";
 
     const validGifKey = (gifKey in assetLibrary.stickers) ? gifKey : 'elon';
@@ -107,10 +106,6 @@ export default function StandaloneVideoPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center py-10 font-sans selection:bg-purple-500/30">
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
-        .tiktok-text { font-family: 'Inter', -apple-system, sans-serif !important; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-      `}} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[500px] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none" />
       
       <div className="relative p-[2px] rounded-[24px] bg-gradient-to-b from-blue-500/50 to-purple-600/50 shadow-[0_0_50px_rgba(139,92,246,0.2)] z-10">
@@ -128,7 +123,7 @@ export default function StandaloneVideoPage() {
           <audio ref={audioRef} src={videoData.audio} loop preload="auto" onEnded={() => setProgress(0)} />
           
           <div className="absolute top-[12%] left-0 right-0 px-6 text-center pointer-events-none z-[20]">
-            <h3 className="tiktok-text text-white text-[22px] sm:text-[24px] leading-[1.2] font-bold tracking-tight" style={{ wordBreak: 'break-word' }}>{hookText}</h3>
+            <h3 className="text-white text-[22px] sm:text-[24px] leading-[1.2] font-bold tracking-tight" style={{ fontFamily: "'Inter', -apple-system, sans-serif", textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000", wordBreak: 'break-word' }}>{hookText}</h3>
           </div>
           
           <div className="absolute inset-x-0 bottom-0 flex justify-center items-end pointer-events-none z-[10]">
