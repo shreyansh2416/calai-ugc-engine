@@ -34,14 +34,21 @@ export async function POST(req: Request) {
     const match = lastMsg.match(urlRegex);
     
     let brand = "the product";
-    let crawledContext = "No specific data found. Assume it's a general web app.";
+    let crawledContext = "Assume this is a general consumer brand or web app.";
     
     if (match) {
       const fullUrl = match[0];
       brand = fullUrl.replace(/(^\w+:|^)\/\//, '').split('/')[0].toLowerCase();
+      
       const siteDescription = await fetchSiteMetadata(fullUrl);
+      
+      // FIX: Sanitize the scraped data so the AI doesn't write jokes about Cloudflare blocks
       if (siteDescription) {
-        crawledContext = `Live Site Context: "${siteDescription}"`;
+        if (siteDescription.toLowerCase().includes("access denied") || siteDescription.toLowerCase().includes("security check")) {
+            crawledContext = `Assume ${brand} is a highly popular mainstream product or brand.`;
+        } else {
+            crawledContext = `Live Site Context: "${siteDescription}"`;
+        }
       }
     }
 
@@ -58,7 +65,6 @@ export async function POST(req: Request) {
       "The product review no one asked for but everyone needs",
       "The 'Me vs. Also Me' internal struggle"
     ];
-    // Replaced modulo with true Math.random for guaranteed archetype variety
     const forcedVibe = memeArchetypes[Math.floor(Math.random() * memeArchetypes.length)];
 
     const visualPairs = [
@@ -76,7 +82,10 @@ export async function POST(req: Request) {
     ];
     const forcedVisuals = visualPairs[Math.floor(Math.random() * visualPairs.length)];
 
-    const systemPrompt = `You are an elite, highly intelligent UGC viral marketing director. 
+    // FIX: Moved the seed into a hidden system tag and explicitly banned it from the output
+    const systemPrompt = `[SYSTEM SEED: ${currentMs}-${randomHash}]
+    You are an elite, highly intelligent UGC viral marketing director. 
+    DO NOT output the SYSTEM SEED in your response.
 
     MODE 1: CONVERSATION 
     - Answer naturally, concisely, and accurately.
@@ -86,8 +95,8 @@ export async function POST(req: Request) {
     - Context: ${crawledContext}
     
     - RULE 1 - THE VIBE: Base your joke on this archetype: "${forcedVibe}".
-    - RULE 2 - EXTREME ENTROPY: Here is your random seed: [${currentMs}-${randomHash}]. You MUST use this seed to completely mutate your vocabulary and phrasing. NEVER write the same sentence structure twice. Be wildly creative.
-    - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation.
+    - RULE 2 - EXTREME ENTROPY: Use the hidden system seed to mutate your vocabulary. NEVER write the same sentence structure twice. Be wildly creative.
+    - RULE 3 - FORMATTING: Replace EVERY space in your final hook string with a single hyphen (-). Keep it entirely lowercase. Do not use punctuation. Do not include numbers unless they are part of the joke.
     
     OUTPUT STRUCTURE: You MUST output ONLY a valid JSON object matching this schema:
     {
@@ -107,7 +116,7 @@ export async function POST(req: Request) {
         cache: 'no-store', 
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 1.15, // CRITICAL: High temperature forces the AI to choose different words
+          temperature: 1.1, 
           response_format: { type: "json_object" }, 
           messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-4)]
         })
